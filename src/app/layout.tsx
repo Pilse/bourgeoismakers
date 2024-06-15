@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { pretendard, KIMM_bold } from "@/fonts";
-import "./globals.css";
 import Link from "next/link";
+import { pretendard, KIMM_bold } from "@/fonts";
+import { Profile } from "@/components";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,7 +26,7 @@ export default function RootLayout({
               부농메이커스
             </Link>
 
-            <button>profile</button>
+            <Profile />
           </div>
         </header>
 

@@ -1,17 +1,30 @@
+import { KIMM_bold } from "@/fonts";
+import { IconAI } from "@/icons";
 import Link from "next/link";
 
 export default function Page() {
   return (
     <>
-      <section className="h-[517px] flex justify-center items-center flex-col min-w-[1440px]">
-        <h1>부농 메이커스로 1분만에 만드는 손쉬운 마케팅 바로 시작해 보세요!</h1>
+      <section className="h-[457px] flex flex-col min-w-[1440px]">
+        <h1 className="text-display/xl flex flex-col items-center mt-[166px]">
+          <span className="flex items-end">
+            <span className={`${KIMM_bold.className} text-primary`}>부농 메이커스</span>로
+          </span>
+
+          <span className="flex mt-[4px]">
+            <span>1분만에 만드는 손쉬운 마케팅</span>
+            <IconAI />
+          </span>
+
+          <span className="text-primary mt-[10px]">바로 시작해 보세요!</span>
+        </h1>
       </section>
 
       <section className="h-[500px] bg-primary flex flex-col items-center min-w-[1440px]">
-        <h2 className="text-white">내 농장 리스트</h2>
-        <p className="text-white">농장은 최대 3개까지 관리 가능합니다</p>
+        <h2 className="text-white text-display/s mt-[40px]">내 농장 리스트</h2>
+        <p className="text-white text-body/l/500 pt-[8px]">농장은 최대 3개까지 관리 가능합니다</p>
 
-        <ul className="flex gap-10">
+        <ul className="flex gap-10 mt-[40px]">
           <Link
             className="w-[240px] h-[240px] bg-white rounded-3xl flex justify-center items-center"
             href="/app/branding/1"
