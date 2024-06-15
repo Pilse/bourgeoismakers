@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { pretendard, KIMM_bold } from "@/fonts";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -15,8 +14,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="ko-KR">
+      <body className={`${pretendard.className} h-full`}>
+        <header className="border-b border-[#E5E7EB] bg-white w-full min-w-[1440px]">
+          <div className="w-[1440px] flex items-center justify-between h-[64px] mx-auto">
+            <Link
+              className={`${KIMM_bold.className} text-heading/l text-primary tracking-[-0.02em]`}
+              href="/"
+            >
+              부농메이커스
+            </Link>
+
+            <button>profile</button>
+          </div>
+        </header>
+
+        {children}
+      </body>
     </html>
   );
 }
