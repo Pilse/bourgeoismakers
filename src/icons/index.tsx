@@ -3,3 +3,7 @@ export * from "./arrow-forward";
 export * from "./google";
 export * from "./keyboard-arrow-down";
 export * from "./logout";
+export * from "./eco";
+export * from "./edit-square";
+export * from "./solid-check";
+export * from "./palatte";

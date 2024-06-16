@@ -21,11 +21,13 @@ export default function Home() {
 
         <Link
           href="/main"
-          className="self-center flex gap-[8px] py-[10px] px-[16px] bg-[#1f2937] rounded-[6px] mt-[35px] hover:bg-[#374151] transition-all"
+          className="self-center flex gap-[8px] py-[10px] px-[16px] bg-[#1f2937] rounded-[6px] mt-[35px] hover:bg-[#374151]"
         >
           <IconGoogle />
           <span className="text-white">구글로 시작하기</span>
-          <IconArrowForward />
+          <span className="text-white">
+            <IconArrowForward />
+          </span>
         </Link>
       </section>
 

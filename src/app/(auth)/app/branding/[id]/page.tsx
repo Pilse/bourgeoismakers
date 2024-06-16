@@ -1,3 +1,4 @@
+import { IconEco, IconEditSquare } from "@/icons";
 import Link from "next/link";
 
 export default function Page() {
@@ -9,12 +10,18 @@ export default function Page() {
 
       <div className="flex grow">
         <aside className="w-[260px] h-full bg-[#F9FAFB] border-r border-[#E5E7EB]">
-          <ul className="flex flex-col gap-4">
-            <Link href="/app/branding/1" className="text-heading/s">
-              농장 브랜딩
+          <ul className="flex flex-col gap-4 p-[16px]">
+            <Link
+              href="/app/branding/1"
+              className="text-heading/m bg-[#e5e7eb] h-[44px] rounded-[8px] p-[8px] flex items-center gap-[8px]"
+            >
+              <IconEco /> 농장 브랜딩
             </Link>
-            <Link href="/app/contents/new" className="text-heading/s">
-              콘텐츠 생성
+            <Link
+              href="/app/branding/1"
+              className="text-heading/m bg-[#e5e7eb] h-[44px] rounded-[8px] p-[8px] flex items-center gap-[8px]"
+            >
+              <IconEditSquare /> 콘텐츠 생성
             </Link>
           </ul>
         </aside>

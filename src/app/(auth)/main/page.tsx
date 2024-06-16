@@ -1,3 +1,4 @@
+import { OnboardingModal } from "@/components";
 import { KIMM_bold } from "@/fonts";
 import { IconAI } from "@/icons";
 import Link from "next/link";
@@ -78,6 +79,8 @@ export default function Page() {
           </Link>
         </ul>
       </section>
+
+      <OnboardingModal />
     </>
   );
 }

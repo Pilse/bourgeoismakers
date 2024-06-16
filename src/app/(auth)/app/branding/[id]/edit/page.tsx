@@ -1,12 +1,16 @@
+import { IconEco } from "@/icons";
 import Link from "next/link";
 
 export default function Page() {
   return (
     <div className="h-full flex">
       <aside className="w-[260px] h-full bg-[#F9FAFB] border-r border-[#E5E7EB]">
-        <ul className="flex flex-col gap-4">
-          <Link href="" className="text-heading/s">
-            농장 브랜딩
+        <ul className="flex flex-col gap-4 p-[16px]">
+          <Link
+            href=""
+            className="text-heading/m bg-[#e5e7eb] h-[44px] rounded-[8px] p-[8px] flex items-center gap-[8px]"
+          >
+            <IconEco /> 농장 브랜딩
           </Link>
         </ul>
       </aside>
