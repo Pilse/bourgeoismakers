@@ -7,3 +7,4 @@ export * from "./eco";
 export * from "./edit-square";
 export * from "./solid-check";
 export * from "./palatte";
+export * from "./refresh";

@@ -19,6 +19,9 @@ html {
   }
 }
 
-input {
+input,
+textarea,
+button,
+select {
   outline: none;
 }

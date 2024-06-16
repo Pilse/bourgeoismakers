@@ -1,15 +1,11 @@
 "use client";
 
+import { BrandingPreference } from "@/domain";
 import { IconSolidCheck } from "@/icons";
 import { twMerge } from "tailwind-merge";
 
 interface IBrandingPreferenceFormProps {
-  form: {
-    sns: string | null;
-    item: string | null;
-    vibe: { type: "INPUT" | "OPTION"; value: string } | null;
-    strength: string[] | null;
-  };
+  form: BrandingPreference;
   onSnsChange: (sns: string) => void;
   onItemChange: (item: string) => void;
   onVibeChange: (vibe: { type: "INPUT" | "OPTION"; value: string }) => void;
@@ -182,7 +178,7 @@ export const BrandingPreferenceForm = ({
       </div>
 
       <div className="flex flex-col gap-[8px] mt-[32px]">
-        <label className="flex items-end">
+        <label className="flex items-end gap-[4px]">
           <span className="text-heading/xs text-gray-600">4. 우리 농장의 강점은 무엇인가요? (최대 3개)</span>
           <span className="text-[#F43F5E] text-[12px] leading-[16px] font-semibold">*</span>
         </label>

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { AILoadingModal, BrandingPreferenceForm } from "@/components";
-import { BrandingPreference, isPreferenceValid } from "@/domain";
+import { BrandingPreference, isPreferenceValid, toBrand } from "@/domain";
 import { IconArrowForward, IconEco, IconPalatte } from "@/icons";
-import { useBrandingPreferenceStore } from "@/store";
+import { useBrandStore, useBrandingPreferenceStore } from "@/store";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
@@ -14,6 +14,7 @@ import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 export default function Page() {
   const router = useRouter();
   const { setPreference, preference } = useBrandingPreferenceStore();
+  const { setBrand } = useBrandStore();
   const [showLoadingModal, setShowLoadingModal] = useState(false);
   const [form, setForm] = useState<BrandingPreference>(preference);
 
@@ -62,6 +63,7 @@ export default function Page() {
           <span>AI를 통해 추천 정보가 자동 입력되었습니다.</span>
         </span>
       ));
+      setBrand(toBrand());
       router.push("/app/branding/result");
     }, 2000);
   };
