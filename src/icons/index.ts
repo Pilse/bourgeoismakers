@@ -8,3 +8,7 @@ export * from "./edit-square";
 export * from "./solid-check";
 export * from "./palatte";
 export * from "./refresh";
+export * from "./arrow-drop-down";
+export * from "./help";
+export * from "./more-vertical";
+export * from "./delete";

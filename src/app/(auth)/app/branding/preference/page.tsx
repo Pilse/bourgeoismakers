@@ -97,7 +97,7 @@ export default function Page() {
 
           <button
             className={twMerge(
-              "h-[48px] bg-[#089E83] hover:bg-[#028066] w-full text-white flex gap-[8px] justify-center items-center mt-auto shrink-0 rounded-[6px] hover:",
+              "h-[48px] bg-[#089E83] hover:bg-[#028066] w-full text-white flex gap-[8px] justify-center items-center mt-auto shrink-0 rounded-[6px]",
               !isFormValid && "bg-gray-100 text-gray-300 hover:bg-gray-100 cursor-default"
             )}
             onClick={handleSubmit}

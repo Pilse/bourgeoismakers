@@ -46,7 +46,7 @@ const config: Config = {
         "display/s": ["36px", { lineHeight: "40px", fontWeight: "700" }],
         "heading/xl": ["28px", { lineHeight: "36px", fontWeight: "600" }],
         "heading/l": ["24px", { lineHeight: "32px", fontWeight: "600" }],
-        "heading/m": ["18px", { lineHeight: "28px", fontWeight: "600" }],
+        "heading/m": ["20px", { lineHeight: "28px", fontWeight: "600" }],
         "heading/s": ["16px", { lineHeight: "24px", fontWeight: "600" }],
         "heading/xs": ["14px", { lineHeight: "20px", fontWeight: "600" }],
         "body/l/400": ["18px", { lineHeight: "26px", fontWeight: "400" }],
