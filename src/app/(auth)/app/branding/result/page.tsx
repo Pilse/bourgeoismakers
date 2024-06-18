@@ -36,7 +36,7 @@ export default function Page() {
     setShowLoadingModal(true);
     setTimeout(() => {
       toast(
-        <span className="flex gap-[8px] h-[40px] items-center w-full">
+        <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
           <IconCheckCircleFill />
           <span>AI를 통해 추천 정보가 자동 입력되었습니다.</span>
         </span>
@@ -44,6 +44,15 @@ export default function Page() {
       setBrand(toBrand());
       setShowLoadingModal(false);
     }, 2000);
+  };
+
+  const handleCompleteClick = () => {
+    toast(
+      <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
+        <IconCheckCircleFill />
+        <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
+      </span>
+    );
   };
 
   return (
@@ -89,6 +98,7 @@ export default function Page() {
             </button>
 
             <Link
+              onClick={handleCompleteClick}
               href="/app/branding/1"
               className="h-[48px] bg-[#089E83] hover:bg-[#028066] grow text-white text-heading/m flex justify-center items-center rounded-[6px]"
             >

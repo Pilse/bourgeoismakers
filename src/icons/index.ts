@@ -12,3 +12,4 @@ export * from "./arrow-drop-down";
 export * from "./help";
 export * from "./more-vertical";
 export * from "./delete";
+export * from "./add";

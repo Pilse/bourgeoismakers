@@ -14,9 +14,9 @@ export default function Template({
           style: {
             borderRadius: "6px",
             boxShadow: "none",
-            background: "#000000CC",
             color: "white",
             padding: "0 6px",
+            backgroundColor: "transparent",
             fontSize: "14px",
             width: "720px",
             maxWidth: "100%",
