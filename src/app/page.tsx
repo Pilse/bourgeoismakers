@@ -3,6 +3,8 @@ import { KIMM_bold } from "@/fonts";
 import { IconAI, IconArrowForward, IconGoogle } from "@/icons";
 
 export default function Home() {
+  const url = `${process.env.GOOGLE_LOGIN_URL}?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}&response_type=code&scope=email profile`;
+
   return (
     <>
       <section className="h-[517px] flex flex-col min-w-[1440px]">
@@ -20,7 +22,7 @@ export default function Home() {
         </h1>
 
         <Link
-          href="/main"
+          href={url}
           className="self-center flex gap-[8px] py-[10px] px-[16px] bg-[#1f2937] rounded-[6px] mt-[35px] hover:bg-[#374151]"
         >
           <IconGoogle />
@@ -31,7 +33,7 @@ export default function Home() {
         </Link>
       </section>
 
-      <section className="h-[500px] bg-primary"></section>
+      <section className="h-[500px] min-w-[1440px] bg-primary"></section>
     </>
   );
 }
