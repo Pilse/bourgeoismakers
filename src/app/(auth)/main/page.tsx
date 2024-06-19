@@ -40,28 +40,28 @@ export default function Page() {
               <path
                 d="M73.9102 1.98177C64.5947 1.98177 54.5488 0.928861 45.4341 3.02077C34.0952 5.62313 25.7413 13.5501 19.921 23.3004C13.5583 33.9594 8.75283 45.7157 5.79841 57.7796C2.98801 69.2553 0.392268 83.2649 4.7979 94.76C7.91199 102.885 11.333 105.611 20.883 106.381C28.1575 106.968 35.5648 106.443 42.7404 105.111C60.8866 101.745 86.7155 92.7991 103.002 84.1007C115.929 77.1963 129.692 67.893 127.668 51.7765C126.511 42.555 121.421 34.232 115.085 27.6103C98.4427 10.2177 76.6269 10.2937 54.5156 10.2937"
                 stroke="#089E83"
-                stroke-width="3"
-                stroke-linecap="round"
+                strokeWidth="3"
+                strokeLinecap="round"
               />
-              <path d="M44.8184 25.5312V42.8478" stroke="#089E83" stroke-width="3" stroke-linecap="round" />
-              <path d="M68.3689 22.7617V49.0829" stroke="#089E83" stroke-width="3" stroke-linecap="round" />
+              <path d="M44.8184 25.5312V42.8478" stroke="#089E83" strokeWidth="3" strokeLinecap="round" />
+              <path d="M68.3689 22.7617V49.0829" stroke="#089E83" strokeWidth="3" strokeLinecap="round" />
               <path
                 d="M37.1991 57.3933C41.499 70.2931 63.2883 74.2548 74.5644 71.9392C85.9564 69.5997 99.814 58.9206 105.08 48.3887"
                 stroke="#089E83"
-                stroke-width="3"
-                stroke-linecap="round"
+                strokeWidth="3"
+                strokeLinecap="round"
               />
               <path
                 d="M33.0862 106.363C33.0862 130.526 31.9875 154.695 31.9875 178.875"
                 stroke="#089E83"
-                stroke-width="3"
-                stroke-linecap="round"
+                strokeWidth="3"
+                strokeLinecap="round"
               />
               <path
                 d="M89.1183 93.1797C116.892 99.3516 134.305 126.789 148.141 149.273C153.144 157.402 154.296 168.573 156.137 177.777"
                 stroke="#089E83"
-                stroke-width="3"
-                stroke-linecap="round"
+                strokeWidth="3"
+                strokeLinecap="round"
               />
             </svg>
           </Link>

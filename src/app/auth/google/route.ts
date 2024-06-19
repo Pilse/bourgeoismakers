@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
@@ -6,12 +8,15 @@ export async function GET(request: Request) {
 
   const loginRes = await fetch(`${process.env.API_URL}/api/v1/auth/google`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ code }),
   });
-  console.log("loginRes", loginRes);
+
+  const cookieStore = cookies();
+  cookieStore.set("jwt", loginRes.headers.getSetCookie()[0].split("=")[1].split(" ")[0]);
 
   return Response.redirect(`${process.env.APP_URL}/main`);
 }

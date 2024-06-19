@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+
 export const dynamic = "force-dynamic";
 
 export default async function Layout({
@@ -5,6 +7,9 @@ export default async function Layout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookie = headers().get("cookie");
+  console.log("cookie", cookie, headers());
+
   return (
     <main className="w-[1440px] mx-auto h-[calc(100%-65px)] border-x border-[#E5E7EB] overflow-x-hidden">
       {children}

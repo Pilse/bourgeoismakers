@@ -13,3 +13,5 @@ export * from "./help";
 export * from "./more-vertical";
 export * from "./delete";
 export * from "./add";
+export * from "./history";
+export * from "./send-fill";

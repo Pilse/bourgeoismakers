@@ -34,7 +34,7 @@ export const BrandHeader = () => {
 
   return (
     <>
-      <div className="h-[80px] border-b border-gray-200 px-[24px] flex items-center justify-between">
+      <div className="h-[80px] border-b border-gray-200 px-[24px] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-[16px]">
           <div className="w-[48px] h-[48px] rounded-full bg-gray-300"></div>
           <div className="flex flex-col gap-[4px]">
