@@ -15,3 +15,4 @@ export * from "./delete";
 export * from "./add";
 export * from "./history";
 export * from "./send-fill";
+export * from "./offline-bolt";

@@ -30,10 +30,10 @@ export default function Page() {
           </ul>
         </aside>
 
-        <div className="flex flex-col h-[calc(100%-80px)]">
-          <BrandHeader />
+        <div className="flex flex-col h-full">
+          <BrandHeader showMore={false} />
 
-          <div className="flex h-full">
+          <div className="flex h-[calc(100%-80px)]">
             <section className="w-[860px] bg-gray-100 flex flex-col">
               <ChattingForm />
             </section>
