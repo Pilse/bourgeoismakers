@@ -1,7 +1,16 @@
 "use client";
 
 import { AILoadingModal, BrandForm, LoadingModal } from "@/components";
-import { Brand, Farm, FarmDTO, toBrandDTO, toFarm } from "@/domain";
+import {
+  Brand,
+  BrandDTO,
+  BrandingPreferenceDTO,
+  Farm,
+  FarmDTO,
+  toBrandDTO,
+  toBrandPreferenceDTO,
+  toFarm,
+} from "@/domain";
 import { IconEco, IconRefresh } from "@/icons";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { httpClient } from "@/service/http-client";
@@ -18,7 +27,7 @@ export default function Page(props: { params: { id: string } }) {
 
   const { data: farm, isLoading } = useQuery({
     queryKey: ["get_farm"],
-    queryFn: () => httpClient.get<FarmDTO>(`/api/v1/farm/get_farm?farm_id=${props.params.id}`),
+    queryFn: () => httpClient.get<Farm>(`/api/v1/farm/get_farm?farm_id=${props.params.id}`),
   });
 
   const [showLoadingModal, setShowLoadingModal] = useState(false);
@@ -45,9 +54,18 @@ export default function Page(props: { params: { id: string } }) {
   };
 
   const handleRegenerateClick = async () => {
+    if (!farm) {
+      return;
+    }
+
     setShowLoadingModal(true);
     try {
-      const data = await httpClient.post<Farm, FarmDTO>("/api/v1/farm/save_brand", toFarm(form, preference));
+      const data = await httpClient.post<BrandingPreferenceDTO, BrandDTO>("/api/v1/farm/generate_brand", {
+        mood: farm.mood,
+        snsType: farm.snsType,
+        products: farm.products,
+        strength: farm.strength,
+      });
       toast(
         <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
           <IconCheckCircleFill />
@@ -56,8 +74,9 @@ export default function Page(props: { params: { id: string } }) {
       );
       setForm({ name: data.name, description: data.summary, feature: data.description });
     } catch (error) {
-      console.error(error);
+      toast.error("브랜딩 정보 생성에 실패했습니다. 다시 시도해주세요.");
     }
+    setShowLoadingModal(false);
   };
 
   const handleCompleteClick = async () => {
@@ -66,7 +85,7 @@ export default function Page(props: { params: { id: string } }) {
     }
 
     try {
-      const data = await httpClient.post<FarmDTO, FarmDTO>("/api/v1/farm/save_brand", {
+      const data = await httpClient.post<Farm, FarmDTO>("/api/v1/farm/save_brand", {
         ...farm,
         ...toBrandDTO(form),
       });

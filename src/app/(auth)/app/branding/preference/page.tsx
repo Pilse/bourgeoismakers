@@ -79,7 +79,11 @@ export default function Page() {
       router.refresh();
       router.push("/app/branding/result");
     } catch (error) {
-      toast.error("AI 브랜딩에 실패했습니다. 다시 시도해주세요.");
+      toast(
+        <span className="flex gap-[8px] h-[40px] text-white items-center w-full bg-[#F43F5E] rounded-[6px] px-[16px]">
+          <span>브랜딩 정보 생성에 실패했습니다. 다시 시도해주세요.</span>
+        </span>
+      );
     }
     setShowLoadingModal(false);
   };

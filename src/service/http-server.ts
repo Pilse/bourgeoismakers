@@ -9,7 +9,6 @@ export const httpServer = {
         "Content-Type": "application/json",
       },
       next: { revalidate: 0, tags: [url] },
-      cache: "no-store",
     })
       .then<Res>((res) => res.json())
       .catch(() => {

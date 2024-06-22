@@ -9,7 +9,6 @@ export const httpClient = {
         "Content-Type": "application/json",
       },
       next: { revalidate: 0, tags: [url] },
-      cache: "no-store",
     }).then<Res>((res) => res.json());
   },
   post: async <Req, Res = any>(url: string, body: Req) => {

@@ -15,7 +15,6 @@ import { IconEco, IconRefresh } from "@/icons";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { httpClient } from "@/service/http-client";
 import { useBrandStore, useBrandingPreferenceStore } from "@/store";
-import { revalidatePath, revalidateTag } from "next/cache";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -23,7 +22,7 @@ import toast from "react-hot-toast";
 
 export default function Page() {
   const router = useRouter();
-  const { preference } = useBrandingPreferenceStore();
+  const { preference, resetPreference } = useBrandingPreferenceStore();
   const { brand, setBrand } = useBrandStore();
 
   const [showLoadingModal, setShowLoadingModal] = useState(false);
@@ -61,7 +60,11 @@ export default function Page() {
       setBrand(toBrand(data));
       setForm(toBrand(data));
     } catch (error) {
-      toast.error("AI 브랜딩에 실패했습니다. 다시 시도해주세요.");
+      toast(
+        <span className="flex gap-[8px] h-[40px] text-white items-center w-full bg-[#F43F5E] rounded-[6px] px-[16px]">
+          <span>브랜딩 정보 생성에 실패했습니다. 다시 시도해주세요.</span>
+        </span>
+      );
     }
     setShowLoadingModal(false);
   };
@@ -70,6 +73,7 @@ export default function Page() {
     try {
       const data = await httpClient.post<Farm, FarmDTO>("/api/v1/farm/save_brand", toFarm(form, preference));
       router.push(`/app/branding/${data?.farm_id}`);
+      resetPreference();
       router.refresh();
       toast(
         <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
