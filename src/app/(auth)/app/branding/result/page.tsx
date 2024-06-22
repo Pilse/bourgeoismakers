@@ -5,15 +5,17 @@ import {
   Brand,
   BrandDTO,
   BrandingPreferenceDTO,
+  Farm,
   FarmDTO,
   toBrand,
   toBrandPreferenceDTO,
-  toFarmDTO,
+  toFarm,
 } from "@/domain";
 import { IconEco, IconRefresh } from "@/icons";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { httpClient } from "@/service/http-client";
 import { useBrandStore, useBrandingPreferenceStore } from "@/store";
+import { revalidatePath, revalidateTag } from "next/cache";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -66,17 +68,15 @@ export default function Page() {
 
   const handleCompleteClick = async () => {
     try {
-      const data = await httpClient.post<FarmDTO, FarmDTO>(
-        "/api/v1/farm/save_brand",
-        toFarmDTO(brand, preference)
-      );
+      const data = await httpClient.post<Farm, FarmDTO>("/api/v1/farm/save_brand", toFarm(form, preference));
+      router.push(`/app/branding/${data?.farm_id}`);
+      router.refresh();
       toast(
         <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
           <IconCheckCircleFill />
           <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
         </span>
       );
-      router.push(`/app/branding/${data?.farm_id}`);
     } catch (error) {
       toast.error("브랜딩 정보 저장에 실패했습니다. 다시 시도해주세요.");
     }

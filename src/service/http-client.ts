@@ -8,6 +8,8 @@ export const httpClient = {
         Authorization: `Bearer ${Cookies.get("jwt")}`,
         "Content-Type": "application/json",
       },
+      next: { revalidate: 0, tags: [url] },
+      cache: "no-store",
     }).then<Res>((res) => res.json());
   },
   post: async <Req, Res = any>(url: string, body: Req) => {
@@ -19,6 +21,16 @@ export const httpClient = {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
+    }).then<Res>((res) => res.json());
+  },
+  delete: async <Res = any>(url: string) => {
+    return fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        Authorization: `Bearer ${Cookies.get("jwt")}`,
+        "Content-Type": "application/json",
+      },
     }).then<Res>((res) => res.json());
   },
 };

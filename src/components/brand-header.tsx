@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { Farm, getContentsLevel, getContentsLevelName, getNextContentsLevelCondition } from "@/domain";
+import { httpClient } from "@/service/http-client";
 
 interface IBrandHeaderProps {
   currentFarm?: Farm;
@@ -23,16 +24,22 @@ export const BrandHeader = ({ currentFarm, farmList, showMore = true }: IBrandHe
     setShowConfirmModal(true);
   };
 
-  const handleConfirmClick = () => {
-    toast(
-      <span className="flex gap-[8px] h-[40px] items-center w-full bg-[#F43F5E] rounded-[6px] px-[16px]">
-        <span className="text-[#F43F5E]">
-          <IconCheckCircleFill />
+  const handleConfirmClick = async () => {
+    try {
+      await httpClient.delete(`/api/v1/farm/delete_farm?farm_id=${currentFarm?.id}`);
+      toast(
+        <span className="flex gap-[8px] h-[40px] items-center w-full bg-[#F43F5E] rounded-[6px] px-[16px]">
+          <span className="text-[#F43F5E]">
+            <IconCheckCircleFill />
+          </span>
+          <span>농장이 삭제되었습니다.</span>
         </span>
-        <span>농장이 삭제되었습니다.</span>
-      </span>
-    );
-    router.replace("/main");
+      );
+      router.replace("/main");
+      router.refresh();
+    } catch (error) {
+      toast.error("농장 삭제에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   const handleCancelClick = () => {

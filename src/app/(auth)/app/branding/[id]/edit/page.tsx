@@ -1,7 +1,7 @@
 "use client";
 
 import { AILoadingModal, BrandForm, LoadingModal } from "@/components";
-import { Brand, FarmDTO, toBrandDTO, toFarmDTO } from "@/domain";
+import { Brand, Farm, FarmDTO, toBrandDTO, toFarm } from "@/domain";
 import { IconEco, IconRefresh } from "@/icons";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { httpClient } from "@/service/http-client";
@@ -47,17 +47,14 @@ export default function Page(props: { params: { id: string } }) {
   const handleRegenerateClick = async () => {
     setShowLoadingModal(true);
     try {
-      const data = await httpClient.post<FarmDTO, FarmDTO>(
-        "/api/v1/farm/save_brand",
-        toFarmDTO(form, preference)
-      );
+      const data = await httpClient.post<Farm, FarmDTO>("/api/v1/farm/save_brand", toFarm(form, preference));
       toast(
         <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
           <IconCheckCircleFill />
-          <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
+          <span>AI를 통해 추천 정보가 자동 입력되었습니다.</span>
         </span>
       );
-      router.push(`/app/branding/${data?.farm_id}`);
+      setForm({ name: data.name, description: data.summary, feature: data.description });
     } catch (error) {
       console.error(error);
     }
@@ -80,6 +77,7 @@ export default function Page(props: { params: { id: string } }) {
         </span>
       );
       router.push(`/app/branding/${data?.farm_id}`);
+      router.refresh();
     } catch (error) {
       toast.error("브랜딩 정보 저장에 실패했습니다. 다시 시도해주세요.");
     }

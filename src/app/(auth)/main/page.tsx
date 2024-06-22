@@ -7,15 +7,16 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const revalidate = 0;
+export const fetchCache = "no-store";
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const [user, farms] = await Promise.all([
-    httpServer.get<User>("/api/v1/auth/protected"),
-    httpServer.get<{ myFarm: { name: string; contentCount: number; id: string }[] }>(
-      "/api/v1/farm/get_farm_list"
-    ),
-  ]);
+  const user = await httpServer.get<User>("/api/v1/auth/protected");
+  const farms = await httpServer.get<{ myFarm: { name: string; contentCount: number; id: string }[] }>(
+    "/api/v1/farm/get_farm_list"
+  );
+
+  console.log(farms);
 
   return (
     <>

@@ -8,7 +8,8 @@ export const httpServer = {
         Authorization: `Bearer ${cookies().get("jwt")?.value}`,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 0 },
+      next: { revalidate: 0, tags: [url] },
+      cache: "no-store",
     })
       .then<Res>((res) => res.json())
       .catch(() => {

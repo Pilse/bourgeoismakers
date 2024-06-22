@@ -76,6 +76,7 @@ export default function Page() {
         </span>
       );
       setBrand(toBrand(data));
+      router.refresh();
       router.push("/app/branding/result");
     } catch (error) {
       toast.error("AI 브랜딩에 실패했습니다. 다시 시도해주세요.");

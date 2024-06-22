@@ -101,10 +101,10 @@ export const toBrandDTO = (brand: Brand): BrandDTO => {
   };
 };
 
-export const toFarmDTO = (brand: Brand, preference: BrandingPreference, id?: string): FarmDTO => {
+export const toFarm = (brand: Brand, preference: BrandingPreference, id?: string): Farm => {
   return {
     ...toBrandDTO(brand),
     ...toBrandPreferenceDTO(preference),
-    farm_id: id ?? "",
+    id: id ?? "",
   };
 };

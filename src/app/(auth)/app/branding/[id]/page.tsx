@@ -3,7 +3,6 @@ import { BrandHeader } from "@/components/brand-header";
 import { Farm } from "@/domain";
 import { IconArrowForward, IconEco, IconEditSquare } from "@/icons";
 import { httpServer } from "@/service/http-server";
-
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
