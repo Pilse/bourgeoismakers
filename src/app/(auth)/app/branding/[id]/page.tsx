@@ -1,7 +1,7 @@
 import { BrandDropdown } from "@/components";
 import { BrandHeader } from "@/components/brand-header";
 import { Farm } from "@/domain";
-import { IconArrowForward, IconEco, IconEditSquare } from "@/icons";
+import { IconArrowForward, IconContentPaste, IconEco, IconEditSquare, IconLocalShipping } from "@/icons";
 import { httpServer } from "@/service/http-server";
 import Link from "next/link";
 
@@ -34,6 +34,28 @@ export default async function Page(props: { params: { id: string } }) {
               className="text-heading/s h-[40px] text-gray-500 rounded-[8px] p-[8px] flex items-center gap-[8px] hover:bg-gray-100"
             >
               <IconEditSquare /> 콘텐츠 생성
+            </Link>
+            <Link
+              href=""
+              className="text-heading/s h-[40px] text-gray-500 rounded-[8px] p-[8px] flex items-center gap-[8px] cursor-default justify-between"
+            >
+              <span className="flex gap-2 text-gray-400">
+                <IconLocalShipping /> 유통 관리
+              </span>
+              <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
+                준비중
+              </span>
+            </Link>
+            <Link
+              href=""
+              className="text-heading/s h-[40px] text-gray-500 rounded-[8px] p-[8px] flex items-center gap-[8px] cursor-default justify-between"
+            >
+              <span className="flex gap-2 text-gray-400">
+                <IconContentPaste /> 판매 관리
+              </span>
+              <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
+                준비중
+              </span>
             </Link>
           </ul>
         </aside>

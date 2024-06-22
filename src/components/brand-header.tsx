@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { Farm, getContentsLevel, getContentsLevelName, getNextContentsLevelCondition } from "@/domain";
 import { httpClient } from "@/service/http-client";
+import Image from "next/image";
 
 interface IBrandHeaderProps {
   currentFarm?: Farm;
@@ -55,7 +56,15 @@ export const BrandHeader = ({ currentFarm, farmList, showMore = true }: IBrandHe
     <>
       <div className="h-[80px] border-b border-gray-200 px-[24px] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-[16px]">
-          <div className="w-[48px] h-[48px] rounded-full bg-gray-300"></div>
+          <div className="w-[48px] h-[48px] rounded-full bg-gray-300">
+            <Image
+              className="rounded-full"
+              src={`/lv${getContentsLevel(currentCount)}.png`}
+              width={48}
+              height={38}
+              alt={`/lv${getContentsLevel(currentCount)}`}
+            />
+          </div>
           <div className="flex flex-col gap-[4px]">
             <span className="text-gray-500 flex items-center gap-[4px]">
               <span className="text-body/xs/500">

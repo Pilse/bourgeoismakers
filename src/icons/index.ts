@@ -16,3 +16,5 @@ export * from "./add";
 export * from "./history";
 export * from "./send-fill";
 export * from "./offline-bolt";
+export * from "./content-paste";
+export * from "./local-shipping";

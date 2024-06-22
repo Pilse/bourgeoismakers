@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { IconAI } from "@/icons";
+import Image from "next/image";
 
 export const OnboardingModal = () => {
   const [showModal, setShowModal] = useState(true);
@@ -70,7 +71,10 @@ export const OnboardingModal = () => {
             </div>
           </div>
         )}
-        <div className="w-[452px] bg-[#f9fafb] p-[32px] rounded-r-[16px]"></div>
+        <div className="w-[452px] bg-[#f9fafb] rounded-r-[16px]">
+          {step === 1 && <Image src="/branding_modal.png" width={450} height={600} alt="branding" />}
+          {step === 2 && <Image src="/contents_modal.png" width={450} height={600} alt="branding" />}
+        </div>
       </div>
     </div>
   );
