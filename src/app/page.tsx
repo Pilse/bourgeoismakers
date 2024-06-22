@@ -2,13 +2,13 @@ import Link from "next/link";
 import { KIMM_bold } from "@/fonts";
 import { IconAI, IconArrowForward, IconGoogle } from "@/icons";
 
-export default function Home() {
-  const url = `${process.env.GOOGLE_LOGIN_URL}?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}&response_type=code&scope=email profile`;
+const url = `${process.env.GOOGLE_LOGIN_URL}?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}&response_type=code&scope=email profile`;
 
+export default async function Home() {
   return (
     <>
-      <section className="h-[517px] flex flex-col min-w-[1440px]">
-        <h1 className="text-display/xl flex flex-col items-center mt-[166px]">
+      <section className="h-[479px] flex flex-col min-w-[1440px]">
+        <h1 className="text-display/xl flex flex-col items-center mt-[120px]">
           <span className="flex items-end">
             <span className={`${KIMM_bold.className} text-primary`}>부농 메이커스</span>로
           </span>

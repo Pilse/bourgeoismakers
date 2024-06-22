@@ -5,11 +5,28 @@ export type BrandingPreference = {
   strength: string[] | null;
 };
 
+export type BrandingPreferenceDTO = {
+  snsType: string;
+  products: string;
+  mood: string;
+  strength: string[];
+};
+
 export type Brand = {
   name: string;
   description: string;
   feature: string;
 };
+
+export type BrandDTO = {
+  name: string;
+  summary: string;
+  description: string;
+};
+
+export type Farm = BrandDTO & BrandingPreferenceDTO & { id: string };
+
+export type FarmDTO = BrandDTO & BrandingPreferenceDTO & { farm_id: string };
 
 export const isPreferenceValid = (preference: BrandingPreference) => {
   if (
@@ -35,12 +52,59 @@ export const isPreferenceValid = (preference: BrandingPreference) => {
   return true;
 };
 
-export const toBrand = (): Brand => {
+export const toBrand = (brand: BrandDTO): Brand => {
   return {
-    name: "호호농장",
-    description:
-      "안녕하세요, 여러분! 😊오늘은 여러분께 건강하고 맛있는 간식, 고구마를 소개해드리려고 합니다. 저희는 신선한 고구마를 직접 재배하고 판매하고 있습니다.",
-    feature:
-      "안녕하세요, 여러분! 😊오늘은 여러분께 건강하고 맛있는 간식, 고구마를 소개해드리려고 합니다. 저희는 신선한 고구마를 직접 재배하고 판매하고 있습니다. 자연 그대로의 달콤함을 지닌 고구마는 누구나 좋아하는 인기 간식이죠! 지금 첫 주문하시는 고객님께는 10% 할인 혜택을 드립니다. 오늘은 여러분께 건강하고 맛있는 간식, 고구마를 소개해드리려고 합니다. 저희는 신선한 고구마를 직접 재배하고 판매하고 있습니다.  자연 그대로의 달콤함을 지닌 고구마는 누구나 좋아하는 인기 간식이죠! 지금 첫 주문하시는 고객님께는 10% 할인 혜택을 드립니다.",
+    name: brand.name,
+    description: brand.summary,
+    feature: brand.description,
+  };
+};
+
+export const toBrandPreferenceDTO = (preference: BrandingPreference): BrandingPreferenceDTO => {
+  return {
+    snsType: tosnsKR(preference.sns ?? ""),
+    products: preference.item ?? "",
+    mood: toVibeKR(preference.vibe?.value ?? ""),
+    strength: toStrengthKR(preference.strength ?? []),
+  };
+};
+
+export const tosnsKR = (sns: BrandingPreferenceDTO["snsType"]) => {
+  return sns === "INSTAGRAM" ? "인스타그램" : "네이버 밴드";
+};
+
+export const toVibeKR = (vibe: BrandingPreferenceDTO["mood"]) => {
+  return vibe === "bubbly" ? "통통 튄다" : "professional" ? "전문적이다" : "approachable" ? "친근하다" : "";
+};
+
+export const toStrengthKR = (strength: BrandingPreferenceDTO["strength"]) => {
+  return strength.map((s) => {
+    return s === "environmentally friendly"
+      ? "친환경 농법"
+      : s === "organic"
+      ? "유기농"
+      : s === "sweetness"
+      ? "뛰어난 당도"
+      : s === "fertilizer"
+      ? "좋은 비료 사용"
+      : s === "shipping"
+      ? "빠른 배송"
+      : s;
+  });
+};
+
+export const toBrandDTO = (brand: Brand): BrandDTO => {
+  return {
+    name: brand.name,
+    summary: brand.description,
+    description: brand.feature,
+  };
+};
+
+export const toFarmDTO = (brand: Brand, preference: BrandingPreference, id?: string): FarmDTO => {
+  return {
+    ...toBrandDTO(brand),
+    ...toBrandPreferenceDTO(preference),
+    farm_id: id ?? "",
   };
 };

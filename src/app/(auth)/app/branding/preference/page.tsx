@@ -4,12 +4,20 @@ import Link from "next/link";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { AILoadingModal, BrandingPreferenceForm } from "@/components";
-import { BrandingPreference, isPreferenceValid, toBrand } from "@/domain";
+import {
+  BrandDTO,
+  BrandingPreference,
+  BrandingPreferenceDTO,
+  isPreferenceValid,
+  toBrand,
+  toBrandPreferenceDTO,
+} from "@/domain";
 import { IconArrowForward, IconEco, IconPalatte } from "@/icons";
 import { useBrandStore, useBrandingPreferenceStore } from "@/store";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
+import { httpClient } from "@/service/http-client";
 
 export default function Page() {
   const router = useRouter();
@@ -53,19 +61,26 @@ export default function Page() {
     setForm((prev) => ({ ...prev, strength: [...strengths, strength] }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setPreference(form);
     setShowLoadingModal(true);
-    setTimeout(() => {
+    try {
+      const data = await httpClient.post<BrandingPreferenceDTO, BrandDTO>(
+        "/api/v1/farm/generate_brand",
+        toBrandPreferenceDTO(form)
+      );
       toast(
         <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
           <IconCheckCircleFill />
           <span>AI를 통해 추천 정보가 자동 입력되었습니다.</span>
         </span>
       );
-      setBrand(toBrand());
+      setBrand(toBrand(data));
       router.push("/app/branding/result");
-    }, 2000);
+    } catch (error) {
+      toast.error("AI 브랜딩에 실패했습니다. 다시 시도해주세요.");
+    }
+    setShowLoadingModal(false);
   };
 
   const isFormValid = isPreferenceValid(form);

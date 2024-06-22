@@ -1,10 +1,19 @@
 "use client";
 
 import { AILoadingModal, BrandForm } from "@/components";
-import { Brand, toBrand } from "@/domain";
+import {
+  Brand,
+  BrandDTO,
+  BrandingPreferenceDTO,
+  FarmDTO,
+  toBrand,
+  toBrandPreferenceDTO,
+  toFarmDTO,
+} from "@/domain";
 import { IconEco, IconRefresh } from "@/icons";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
-import { useBrandStore } from "@/store";
+import { httpClient } from "@/service/http-client";
+import { useBrandStore, useBrandingPreferenceStore } from "@/store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,7 +21,9 @@ import toast from "react-hot-toast";
 
 export default function Page() {
   const router = useRouter();
+  const { preference } = useBrandingPreferenceStore();
   const { brand, setBrand } = useBrandStore();
+
   const [showLoadingModal, setShowLoadingModal] = useState(false);
   const [form, setForm] = useState<Brand>(brand);
 
@@ -32,27 +43,43 @@ export default function Page() {
     router.back();
   };
 
-  const handleRegenerateClick = () => {
+  const handleRegenerateClick = async () => {
     setShowLoadingModal(true);
-    setTimeout(() => {
+    try {
+      const data = await httpClient.post<BrandingPreferenceDTO, BrandDTO>(
+        "/api/v1/farm/generate_brand",
+        toBrandPreferenceDTO(preference)
+      );
       toast(
         <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
           <IconCheckCircleFill />
           <span>AI를 통해 추천 정보가 자동 입력되었습니다.</span>
         </span>
       );
-      setBrand(toBrand());
-      setShowLoadingModal(false);
-    }, 2000);
+      setBrand(toBrand(data));
+      setForm(toBrand(data));
+    } catch (error) {
+      toast.error("AI 브랜딩에 실패했습니다. 다시 시도해주세요.");
+    }
+    setShowLoadingModal(false);
   };
 
-  const handleCompleteClick = () => {
-    toast(
-      <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
-        <IconCheckCircleFill />
-        <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
-      </span>
-    );
+  const handleCompleteClick = async () => {
+    try {
+      const data = await httpClient.post<FarmDTO, FarmDTO>(
+        "/api/v1/farm/save_brand",
+        toFarmDTO(brand, preference)
+      );
+      toast(
+        <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
+          <IconCheckCircleFill />
+          <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
+        </span>
+      );
+      router.push(`/app/branding/${data?.farm_id}`);
+    } catch (error) {
+      toast.error("브랜딩 정보 저장에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (

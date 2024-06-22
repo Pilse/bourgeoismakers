@@ -1,20 +1,32 @@
 "use client";
 
-import { AILoadingModal, BrandForm } from "@/components";
-import { Brand, toBrand } from "@/domain";
+import { AILoadingModal, BrandForm, LoadingModal } from "@/components";
+import { Brand, FarmDTO, toBrandDTO, toFarmDTO } from "@/domain";
 import { IconEco, IconRefresh } from "@/icons";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
-import { useBrandStore } from "@/store";
+import { httpClient } from "@/service/http-client";
+import { useBrandingPreferenceStore } from "@/store";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-export default function Page() {
+export default function Page(props: { params: { id: string } }) {
   const router = useRouter();
-  const { brand, setBrand } = useBrandStore();
+  const { preference } = useBrandingPreferenceStore();
+
+  const { data: farm, isLoading } = useQuery({
+    queryKey: ["get_farm"],
+    queryFn: () => httpClient.get<FarmDTO>(`/api/v1/farm/get_farm?farm_id=${props.params.id}`),
+  });
+
   const [showLoadingModal, setShowLoadingModal] = useState(false);
-  const [form, setForm] = useState<Brand>(brand);
+  const [form, setForm] = useState<Brand>({
+    name: "",
+    description: "",
+    feature: "",
+  });
 
   const handleNameChange = (name: string) => {
     setForm((prev) => ({ ...prev, name }));
@@ -32,30 +44,56 @@ export default function Page() {
     router.back();
   };
 
-  const handleRegenerateClick = () => {
+  const handleRegenerateClick = async () => {
     setShowLoadingModal(true);
-    setTimeout(() => {
+    try {
+      const data = await httpClient.post<FarmDTO, FarmDTO>(
+        "/api/v1/farm/save_brand",
+        toFarmDTO(form, preference)
+      );
       toast(
         <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
           <IconCheckCircleFill />
-          <span>AI를 통해 추천 정보가 자동 입력되었습니다.</span>
+          <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
         </span>
       );
-      setBrand(toBrand());
-      setShowLoadingModal(false);
-    }, 2000);
+      router.push(`/app/branding/${data?.farm_id}`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleCompleteClick = () => {
-    toast(
-      <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
-        <IconCheckCircleFill />
-        <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
-      </span>
-    );
+  const handleCompleteClick = async () => {
+    if (!farm) {
+      return;
+    }
+
+    try {
+      const data = await httpClient.post<FarmDTO, FarmDTO>("/api/v1/farm/save_brand", {
+        ...farm,
+        ...toBrandDTO(form),
+      });
+      toast(
+        <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
+          <IconCheckCircleFill />
+          <span>내 농장 브랜딩 정보가 저장되었습니다.</span>
+        </span>
+      );
+      router.push(`/app/branding/${data?.farm_id}`);
+    } catch (error) {
+      toast.error("브랜딩 정보 저장에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
-  return (
+  useLayoutEffect(() => {
+    if (farm) {
+      setForm({ name: farm.name, description: farm.summary, feature: farm.description });
+    }
+  }, [farm]);
+
+  return isLoading ? (
+    <LoadingModal />
+  ) : (
     <>
       <div className="h-full flex">
         <aside className="w-[416px] h-full bg-[#F9FAFB]">
@@ -97,13 +135,12 @@ export default function Page() {
               돌아가기
             </button>
 
-            <Link
+            <button
               onClick={handleCompleteClick}
-              href="/app/branding/1"
               className="h-[48px] bg-[#089E83] hover:bg-[#028066] grow text-white text-heading/m flex justify-center items-center rounded-[6px]"
             >
               완료
-            </Link>
+            </button>
           </div>
         </section>
       </div>

@@ -6,17 +6,22 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
 
-  const loginRes = await fetch(`${process.env.API_URL}/api/v1/auth/google`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ code }),
-  });
+  try {
+    const res = await fetch(`${process.env.API_URL}/api/v1/auth/google`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code, redirectUri: process.env.GOOGLE_REDIRECT_URL }),
+    });
 
-  const cookieStore = cookies();
-  cookieStore.set("jwt", loginRes.headers.getSetCookie()[0].split("=")[1].split(" ")[0]);
+    const cookieStore = cookies();
 
-  return Response.redirect(`${process.env.APP_URL}/main`);
+    cookieStore.set("jwt", res.headers.getSetCookie()[0].split("=")[1].split(";")[0]);
+    return Response.redirect(`${process.env.APP_URL}/main`);
+  } catch (e) {
+    console.log(e);
+    return Response.redirect(`${process.env.APP_URL}`);
+  }
 }
