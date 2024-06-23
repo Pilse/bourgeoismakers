@@ -18,3 +18,6 @@ export * from "./send-fill";
 export * from "./offline-bolt";
 export * from "./content-paste";
 export * from "./local-shipping";
+export * from "./upload";
+export * from "./manage-search";
+export * from "./pallete2";

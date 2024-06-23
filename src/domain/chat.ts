@@ -23,6 +23,11 @@ export type ChatRes = {
   status: true;
 };
 
+export type Content = {
+  role: "bot" | "user";
+  content: string;
+};
+
 export const chatStatus: Record<Exclude<CHAT_PRESET_TYPE, "text" | "result">, CHAT_STATUS> = {
   item: "IN_PROGRESS",
   contents: "NOT_COMPLETED",

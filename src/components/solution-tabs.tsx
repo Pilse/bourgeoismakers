@@ -5,7 +5,9 @@ import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 export const SolutionTabs = () => {
-  const [activeTab, setActiveTab] = useState<"BRANDING" | "CONTENTS" | "DISTRIBUTION" | "SELL">("BRANDING");
+  const [activeTab, setActiveTab] = useState<"BRANDING" | "CONTENTS" | "LOGO" | "PREVIEW" | "UPLOAD">(
+    "BRANDING"
+  );
 
   return (
     <div className="flex flex-col items-center">
@@ -13,7 +15,7 @@ export const SolutionTabs = () => {
         <button
           onClick={() => setActiveTab("BRANDING")}
           className={twMerge(
-            "h-full rounded-md flex justify-center items-center w-32",
+            "h-full rounded-md flex justify-center items-center w-[166px]",
             activeTab === "BRANDING" && "bg-white text-gray-800"
           )}
         >
@@ -22,32 +24,44 @@ export const SolutionTabs = () => {
         <button
           onClick={() => setActiveTab("CONTENTS")}
           className={twMerge(
-            "h-full rounded-md flex justify-center items-center w-32",
+            "h-full rounded-md flex justify-center items-center w-[166px]",
             activeTab === "CONTENTS" && "bg-white text-gray-800"
           )}
         >
           콘텐츠 생성
         </button>
         <button
-          onClick={() => setActiveTab("DISTRIBUTION")}
+          onClick={() => setActiveTab("LOGO")}
           className={twMerge(
-            "h-full rounded-md flex justify-center  gap-1 items-center w-32",
-            activeTab === "DISTRIBUTION" && "bg-white text-gray-800"
+            "h-full rounded-md flex justify-center  gap-1 items-center w-[166px]",
+            activeTab === "LOGO" && "bg-white text-gray-800"
           )}
         >
-          <span>유통 관리</span>
+          <span>로고 생성</span>
           <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
             준비중
           </span>
         </button>
         <button
-          onClick={() => setActiveTab("SELL")}
+          onClick={() => setActiveTab("PREVIEW")}
           className={twMerge(
-            "h-full rounded-md flex justify-center  gap-1 items-center w-32",
-            activeTab === "SELL" && "bg-white text-gray-800"
+            "h-full rounded-md flex justify-center  gap-1 items-center w-[166px]",
+            activeTab === "PREVIEW" && "bg-white text-gray-800"
           )}
         >
-          <span>판매 관리</span>
+          <span>게시글 미리보기</span>
+          <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
+            준비중
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab("UPLOAD")}
+          className={twMerge(
+            "h-full rounded-md flex justify-center  gap-1 items-center w-[166px]",
+            activeTab === "UPLOAD" && "bg-white text-gray-800"
+          )}
+        >
+          <span>자동 업로드</span>
           <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
             준비중
           </span>

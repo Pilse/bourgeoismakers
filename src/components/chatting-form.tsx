@@ -7,6 +7,7 @@ import {
   ChatDTO,
   ChatListItem,
   ChatRes,
+  Content,
   chatPreset,
   chatStatus as defaultChatStatus,
   statusOrder,
@@ -23,9 +24,10 @@ import { twMerge } from "tailwind-merge";
 interface IChattingFormProps {
   brandId: string;
   id?: string;
+  chat?: { messages: Content[] };
 }
 
-export const ChattingForm = ({ brandId, id }: IChattingFormProps) => {
+export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormProps) => {
   const router = useRouter();
   const chatRef = useRef<HTMLDivElement>(null);
   const [chatId, setChatId] = useState(id);
@@ -35,8 +37,15 @@ export const ChattingForm = ({ brandId, id }: IChattingFormProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [aiLoading, setAiLoading] = useState(false);
   const [chat, setChat] = useState<
-    ({ type: "bot"; preset: CHAT_PRESET_TYPE; message?: string } | { type: "user"; message: string })[]
-  >([chatPreset.item]);
+    (
+      | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
+      | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
+    )[]
+  >(
+    defaultChat
+      ? defaultChat.messages.map((chat) => ({ type: chat.role, message: chat.content, preset: "text" }))
+      : [chatPreset.item]
+  );
 
   console.log(chat);
 

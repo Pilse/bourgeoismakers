@@ -9,7 +9,10 @@ import {
   IconEditSquare,
   IconHistory,
   IconLocalShipping,
+  IconManageSearch,
   IconMoreVertical,
+  IconPallete2,
+  IconUpload,
 } from "@/icons";
 import { httpServer } from "@/service/http-server";
 import Link from "next/link";
@@ -49,7 +52,7 @@ export default async function Page(props: { params: { id: string } }) {
               className="text-heading/s h-[40px] text-gray-500 rounded-[8px] p-[8px] flex items-center gap-[8px] cursor-default justify-between"
             >
               <span className="flex gap-2 text-gray-400">
-                <IconLocalShipping /> 유통 관리
+                <IconPallete2 /> 로고 생성
               </span>
               <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
                 준비중
@@ -60,7 +63,18 @@ export default async function Page(props: { params: { id: string } }) {
               className="text-heading/s h-[40px] text-gray-500 rounded-[8px] p-[8px] flex items-center gap-[8px] cursor-default justify-between"
             >
               <span className="flex gap-2 text-gray-400">
-                <IconContentPaste /> 판매 관리
+                <IconManageSearch /> 게시글 미리보기
+              </span>
+              <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
+                준비중
+              </span>
+            </Link>
+            <Link
+              href=""
+              className="text-heading/s h-[40px] text-gray-500 rounded-[8px] p-[8px] flex items-center gap-[8px] cursor-default justify-between"
+            >
+              <span className="flex gap-2 text-gray-400">
+                <IconUpload /> 자동 업로드
               </span>
               <span className="text-[#B45309] bg-[#FEF3C7] px-1.5 rounded-full h-[20px] flex items-center text-body/xs/500">
                 준비중
@@ -80,7 +94,7 @@ export default async function Page(props: { params: { id: string } }) {
             <aside className="w-[320px] bg-white overflow-y-auto h-full">
               <div className="flex flex-col p-4 border-b border-[#E5E7EB]">
                 <Link
-                  href="/app/contents/new"
+                  href={`/app/branding/${props.params.id}/contents/new`}
                   className="bg-primary h-[40px] hover:bg-[#028066] text-white flex items-center justify-center text-heading/s rounded-[6px] gap-[4px]]"
                 >
                   <IconAdd size={20} />
