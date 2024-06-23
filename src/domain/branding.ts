@@ -70,7 +70,7 @@ export const toBrandPreferenceDTO = (preference: BrandingPreference): BrandingPr
 };
 
 export const tosnsKR = (sns: BrandingPreferenceDTO["snsType"]) => {
-  return sns === "INSTAGRAM" ? "인스타그램" : "네이버 밴드";
+  return sns === "instagram" ? "인스타그램" : "네이버 밴드";
 };
 
 export const toVibeKR = (vibe: BrandingPreferenceDTO["mood"]) => {

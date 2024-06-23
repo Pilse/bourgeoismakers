@@ -30,7 +30,7 @@ export default async function Page(props: { params: { id: string } }) {
               <IconEco /> 농장 브랜딩
             </Link>
             <Link
-              href="/app/contents/new"
+              href={`/app/branding/${props.params.id}/contents/new`}
               className="text-heading/s h-[40px] text-gray-500 rounded-[8px] p-[8px] flex items-center gap-[8px] hover:bg-gray-100"
             >
               <IconEditSquare /> 콘텐츠 생성
@@ -114,7 +114,7 @@ export default async function Page(props: { params: { id: string } }) {
 
           <div className="bg-white py-2 w-full mb-[40px] mx-[48px] mt-auto">
             <Link
-              href="/app/contents/new"
+              href={`/app/branding/${props.params.id}/contents/new`}
               className="h-[48px] bg-[#089E83] hover:bg-[#028066] w-full text-white flex gap-[8px] justify-center items-center mt-auto shrink-0 rounded-[6px]"
             >
               <span className="text-heading/m">콘텐츠 생성 하러가기</span>

@@ -47,9 +47,8 @@ export const BrandHeader = ({ currentFarm, farmList, showMore = true }: IBrandHe
     setShowConfirmModal(false);
   };
 
-  const currentCount = getContentsLevel(
-    farmList?.myFarm.find((farm) => farm.id === currentFarm?.id)?.contentCount ?? 0
-  );
+  const currentCount = farmList?.myFarm.find((farm) => farm.id === currentFarm?.id)?.contentCount ?? 0;
+  const currentLevel = getContentsLevel(currentCount);
   const currentName = getContentsLevelName(currentCount);
   const nextCount = getNextContentsLevelCondition(currentCount);
   return (
@@ -89,19 +88,26 @@ export const BrandHeader = ({ currentFarm, farmList, showMore = true }: IBrandHe
         <div className="flex items-center gap-[16px]">
           <div className="w-[200px] flex flex-col gap-[8px]">
             <div className="flex justify-between items-center">
-              <span className="text-gray-800 text-body/s/500">다음 레벨까지</span>
+              <span className="text-gray-800 text-body/s/500">
+                {currentLevel === 3 ? "생성 완료 콘텐츠" : "다음 레벨까지"}
+              </span>
               <span>
                 <span className="text-heading/s text-[#089E83]">{currentCount}</span>{" "}
-                <span className="text-body/m/500 text-gray-500">/{nextCount}개</span>
+                <span className="text-body/m/500 text-gray-500">
+                  {currentLevel === 3 ? "" : "/"}
+                  {nextCount}개
+                </span>
               </span>
             </div>
 
-            <div className="w-full bg-gray-200 rounded-full h-[8px]">
-              <div
-                style={{ width: !nextCount ? "100%" : `${(100 * currentCount) / nextCount}%` }}
-                className="h-full bg-primary rounded-full"
-              ></div>
-            </div>
+            {currentLevel !== 3 && (
+              <div className="w-full bg-gray-200 rounded-full h-[8px]">
+                <div
+                  style={{ width: !nextCount ? "100%" : `${(100 * currentCount) / nextCount}%` }}
+                  className="h-full bg-primary rounded-full"
+                ></div>
+              </div>
+            )}
           </div>
 
           {showMore && (
