@@ -26,7 +26,6 @@ export default async function Page(props: { params: { id: string; content_id: st
     httpServer.get<{ chatList: ChatListItem[] }>(`/api/v1/contents/get_chat_list?farmId=${props.params.id}`),
     httpServer.get<{ messages: Content[] }>(`/api/v1/contents/get_chat?chatId=${props.params.content_id}`),
   ]);
-  console.log(chat);
 
   return (
     <div className="h-full flex-col flex">
@@ -90,7 +89,7 @@ export default async function Page(props: { params: { id: string; content_id: st
 
           <div className="flex h-[calc(100%-80px)]">
             <section className="w-[860px] bg-gray-100 flex flex-col">
-              <ChattingForm brandId={props.params.id} chat={chat} />
+              <ChattingForm brandId={props.params.id} chat={chat} id={props.params.content_id} />
             </section>
 
             <aside className="w-[320px] bg-white overflow-y-auto h-full">

@@ -12,12 +12,13 @@ import {
   chatStatus as defaultChatStatus,
   statusOrder,
 } from "@/domain";
-import { IconArrowForward, IconOfflineBolt } from "@/icons";
+import { IconArrowForward, IconContentCopy, IconOfflineBolt } from "@/icons";
 import { IconBunong } from "@/icons/bunong";
 import { IconSendFill } from "@/icons/send-fill";
 import { httpClient } from "@/service/http-client";
+import { useForceRerenderStore } from "@/store";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Oval } from "react-loader-spinner";
 import { twMerge } from "tailwind-merge";
 
@@ -29,6 +30,7 @@ interface IChattingFormProps {
 
 export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormProps) => {
   const router = useRouter();
+  const { flag } = useForceRerenderStore();
   const chatRef = useRef<HTMLDivElement>(null);
   const [chatId, setChatId] = useState(id);
   const [input, setInput] = useState("");
@@ -47,18 +49,21 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
       : [chatPreset.item]
   );
 
-  console.log(chat);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: FormEvent<HTMLFormElement>,
+    inputChat?:
+      | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
+      | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
+  ) => {
     e.preventDefault();
     let currentChatId = chatId;
 
-    if (!input) {
+    if (!input && !inputChat) {
       return;
     }
 
     setInput("");
-    setChat((prev) => [...prev, { type: "user", message: input }]);
+    setChat((prev) => [...prev, inputChat ?? { type: "user", message: input }]);
 
     if (currentStep === 5) {
       setAiLoading(true);
@@ -104,7 +109,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
         if (res.status) {
           setChat((prev) => [
             ...prev,
-            { type: "bot", message: res.assistantMessage.content, preset: "text" },
+            { type: "bot", message: res.assistantMessage.content, preset: "result" },
           ]);
         }
       } catch (error) {
@@ -131,6 +136,25 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     }));
   };
 
+  const generateContent = async () => {
+    if (!chatId) {
+      return;
+    }
+
+    setAiLoading(true);
+
+    const res = await httpClient.post<{ chatId: string; completionTrigger: boolean }, ChatRes>(
+      "/api/v1/contents/generate_content",
+      { chatId, completionTrigger: true }
+    );
+
+    if (res.status) {
+      setChat((prev) => [...prev, { type: "bot", message: res.assistantMessage.content, preset: "result" }]);
+    }
+
+    setAiLoading(false);
+  };
+
   useEffect(() => {
     if (!chatRef.current) {
       return;
@@ -139,13 +163,31 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [chat]);
 
+  useEffect(() => {
+    if (id) {
+      return;
+    }
+
+    setChat([chatPreset.item]);
+    setChatStatus(defaultChatStatus);
+    setChatId(id);
+    setCurrentStep(0);
+  }, [flag, id]);
+
   return (
     <>
       <div className="w-[860px] flex flex-col overflow-y-auto h-full" ref={chatRef}>
         <div className="grow flex flex-col gap-3 p-4">
           {chat.map((c, idx) =>
             c.type === "bot" ? (
-              <BotChat key={c.message + c.type + String(idx)} presetType={c.preset} message={c.message} />
+              <BotChat
+                key={c.message + c.type + String(idx)}
+                presetType={c.preset}
+                message={c.message}
+                setChat={setChat}
+                handleSubmit={handleSubmit}
+                generateContent={generateContent}
+              />
             ) : (
               <UserChat key={c.message + c.type + String(idx)} message={c.message} />
             )
@@ -165,7 +207,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
                   </p>
                 )}
                 {aiLoading && (
-                  <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col items-center text-center">
+                  <p className="w-[560px] px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col items-center text-center">
                     <span className="whitespace-pre-wrap">{`결과를 가져오는 중이에요\n잠시만 기다려주세요`}</span>
                     <span className="mt-4">
                       <Oval
@@ -209,9 +251,24 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
 interface IBotChat {
   presetType: CHAT_PRESET_TYPE;
   message?: string;
+  setChat: Dispatch<
+    SetStateAction<
+      (
+        | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
+        | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
+      )[]
+    >
+  >;
+  handleSubmit: (
+    e: FormEvent<HTMLFormElement>,
+    inputChat?:
+      | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
+      | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
+  ) => void;
+  generateContent: () => void;
 }
 
-const BotChat = ({ presetType, message }: IBotChat) => {
+const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }: IBotChat) => {
   if (presetType === "item") {
     return (
       <div className="flex gap-[8px]">
@@ -249,21 +306,45 @@ const BotChat = ({ presetType, message }: IBotChat) => {
                 <span>추천</span>
               </span>
 
-              <div className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px]">
+              <div
+                className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer"
+                onClick={() => {
+                  handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>, {
+                    type: "user",
+                    message: `고객 리뷰 혹은 평가\n: 고객들이 이게 좋대요!`,
+                  });
+                }}
+              >
                 <div className="w-[96px] h-[96px] bg-gray-100"></div>
                 <p className="text-black text-heading/xs whitespace-pre-wrap flex items-center px-[16px]">
                   {`고객 리뷰 혹은 평가\n: 고객들이 이게 좋대요!`}
                 </p>
               </div>
 
-              <div className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px]">
+              <div
+                className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer"
+                onClick={() => {
+                  handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>, {
+                    type: "user",
+                    message: `자화자찬\n: 우리 이거 진짜 좋아요`,
+                  });
+                }}
+              >
                 <div className="w-[96px] h-[96px] bg-gray-100"></div>
                 <p className="text-black text-heading/xs whitespace-pre-wrap flex items-center px-[16px]">
                   {`자화자찬\n: 우리 이거 진짜 좋아요`}
                 </p>
               </div>
 
-              <div className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px]">
+              <div
+                className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer"
+                onClick={() => {
+                  handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>, {
+                    type: "user",
+                    message: `레시피 공유`,
+                  });
+                }}
+              >
                 <div className="w-[96px] h-[96px] bg-gray-100"></div>
                 <p className="text-black text-heading/xs whitespace-pre-wrap flex items-center px-[16px]">
                   {`레시피 공유`}
@@ -293,7 +374,12 @@ const BotChat = ({ presetType, message }: IBotChat) => {
 
             <div className="h-px w-full bg-gray-200 my-[16px]"></div>
 
-            <button className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]">
+            <button
+              className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]"
+              onClick={() => {
+                setChat((prev) => [...prev, chatPreset.keywords]);
+              }}
+            >
               <span className="heading-xs">이 질문 넘어가기</span>
               <span>
                 <IconArrowForward size={16} />
@@ -323,7 +409,12 @@ const BotChat = ({ presetType, message }: IBotChat) => {
 
             <div className="h-px w-full bg-gray-200 my-[16px]"></div>
 
-            <button className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]">
+            <button
+              className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]"
+              onClick={() => {
+                setChat((prev) => [...prev, chatPreset.contacts]);
+              }}
+            >
               <span className="heading-xs">이 질문 넘어가기</span>
               <span>
                 <IconArrowForward size={16} />
@@ -348,7 +439,12 @@ const BotChat = ({ presetType, message }: IBotChat) => {
 
             <div className="h-px w-full bg-gray-200 my-[16px]"></div>
 
-            <button className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]">
+            <button
+              className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]"
+              onClick={() => {
+                generateContent();
+              }}
+            >
               <span className="heading-xs">이 질문 넘어가기</span>
               <span>
                 <IconArrowForward size={16} />
@@ -370,6 +466,40 @@ const BotChat = ({ presetType, message }: IBotChat) => {
           <span className="text-body/m/500 text-gray-600">부농이</span>
           <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
             {message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (presetType === "result") {
+    return (
+      <div className="flex gap-[8px]">
+        <span className="shrink-0">
+          <IconBunong />
+        </span>
+        <div className="flex flex-col gap-[8px]">
+          <span className="text-body/m/500 text-gray-600">부농이</span>
+          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+            {message}
+
+            <div className="w-full h-px bg-[#D1D5DB] mt-4"></div>
+
+            <button
+              className="flex gap-1 px-3 py-1.5 mt-4 items-center rounded-md hover:bg-gray-100 w-fit"
+              onClick={() => {
+                window.navigator.clipboard.writeText(message ?? "");
+              }}
+            >
+              <span>
+                <IconContentCopy />
+              </span>
+              <span>복사하기</span>
+            </button>
+          </p>
+          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+            <span>{`결과가 나왔어요\n추가로 변경하고 싶은 사항이 있으시면 채팅에 입력해주세요! `}</span>
+            <span className="text-body/s/400 text-gray-500">(ex. 말투 혹은 길이 등)</span>
           </p>
         </div>
       </div>

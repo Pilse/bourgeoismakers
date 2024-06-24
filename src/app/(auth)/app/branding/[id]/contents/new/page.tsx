@@ -1,14 +1,12 @@
-import { BrandDropdown, ChattingForm } from "@/components";
+import { BrandDropdown, ChattingForm, NewButtonButton } from "@/components";
 import { BrandHeader } from "@/components/brand-header";
 import { ChatListItem, Farm } from "@/domain";
 import {
   IconAdd,
-  IconContentPaste,
   IconDelete,
   IconEco,
   IconEditSquare,
   IconHistory,
-  IconLocalShipping,
   IconManageSearch,
   IconMoreVertical,
   IconPallete2,
@@ -93,13 +91,7 @@ export default async function Page(props: { params: { id: string } }) {
 
             <aside className="w-[320px] bg-white overflow-y-auto h-full">
               <div className="flex flex-col p-4 border-b border-[#E5E7EB]">
-                <Link
-                  href={`/app/branding/${props.params.id}/contents/new`}
-                  className="bg-primary h-[40px] hover:bg-[#028066] text-white flex items-center justify-center text-heading/s rounded-[6px] gap-[4px]]"
-                >
-                  <IconAdd size={20} />
-                  <span>새 콘텐츠 만들기</span>
-                </Link>
+                <NewButtonButton brandId={props.params.id} />
               </div>
 
               <ul className="flex flex-col gap-[8px] p-[16px] overflow-y-auto h-full">

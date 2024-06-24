@@ -7,3 +7,4 @@ export * from "./loading-modal";
 export * from "./brand-delete-modal";
 export * from "./brand-dropdown";
 export * from "./chatting-form";
+export * from "./new-content-button";

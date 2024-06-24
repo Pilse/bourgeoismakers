@@ -15,8 +15,6 @@ export default async function Page() {
     "/api/v1/farm/get_farm_list"
   );
 
-  console.log(farms);
-
   return (
     <>
       <section className="h-[490px] flex flex-col min-w-[1440px]">

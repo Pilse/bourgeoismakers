@@ -21,7 +21,6 @@ export async function GET(request: Request) {
     cookieStore.set("jwt", res.headers.getSetCookie()[0].split("=")[1].split(";")[0]);
     return Response.redirect(`${process.env.APP_URL}/main`);
   } catch (e) {
-    console.log(e);
     return Response.redirect(`${process.env.APP_URL}`);
   }
 }
