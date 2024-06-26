@@ -25,12 +25,14 @@ export default function Page() {
   const { setBrand } = useBrandStore();
   const [showLoadingModal, setShowLoadingModal] = useState(false);
   const [form, setForm] = useState<BrandingPreference>(preference);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSnsChange = (sns: string) => {
     setForm((prev) => ({ ...prev, sns }));
   };
 
   const handleItemChange = (item: string) => {
+    setError(null);
     setForm((prev) => ({ ...prev, item }));
   };
 
@@ -79,11 +81,7 @@ export default function Page() {
       router.refresh();
       router.push("/app/branding/result");
     } catch (error) {
-      toast(
-        <span className="flex gap-[8px] h-[40px] text-white items-center w-full bg-[#F43F5E] rounded-[6px] px-[16px]">
-          <span>브랜딩 정보 생성에 실패했습니다. 다시 시도해주세요.</span>
-        </span>
-      );
+      setError("우리 농장에서 생산하는 품목을 정확하게 입력해 주세요! ex) 고구마");
     }
     setShowLoadingModal(false);
   };
@@ -113,6 +111,7 @@ export default function Page() {
             onItemChange={handleItemChange}
             onVibeChange={handleVibeChange}
             onStrengthChange={handleStrengthChange}
+            error={error}
           />
 
           <button

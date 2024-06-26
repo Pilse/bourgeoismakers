@@ -74,7 +74,13 @@ export const tosnsKR = (sns: BrandingPreferenceDTO["snsType"]) => {
 };
 
 export const toVibeKR = (vibe: BrandingPreferenceDTO["mood"]) => {
-  return vibe === "bubbly" ? "통통 튄다" : "professional" ? "전문적이다" : "approachable" ? "친근하다" : "";
+  return vibe === "bubbly"
+    ? "통통 튄다"
+    : vibe === "professional"
+    ? "전문적이다"
+    : vibe === "approachable"
+    ? "친근하다"
+    : vibe;
 };
 
 export const toStrengthKR = (strength: BrandingPreferenceDTO["strength"]) => {

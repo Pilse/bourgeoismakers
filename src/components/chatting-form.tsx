@@ -29,14 +29,15 @@ interface IChattingFormProps {
 }
 
 export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormProps) => {
+  const defaultStep = defaultChat?.messages.at(-1)?.scenarioStep ?? -1;
   const router = useRouter();
   const { flag } = useForceRerenderStore();
   const chatRef = useRef<HTMLDivElement>(null);
   const [chatId, setChatId] = useState(id);
   const [input, setInput] = useState("");
-  const [chatStatus, setChatStatus] = useState(defaultChatStatus);
+  // const [chatStatus, setChatStatus] = useState(defaultChatStatus);
   const [chatLoading, setChatLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(defaultStep);
   const [aiLoading, setAiLoading] = useState(false);
   const [chat, setChat] = useState<
     (
@@ -45,9 +46,20 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     )[]
   >(
     defaultChat
-      ? defaultChat.messages.map((chat) => ({ type: chat.role, message: chat.content, preset: "text" }))
+      ? [
+          ...(defaultChat.messages.map((chat) => ({
+            type: chat.role,
+            message: chat.content,
+            preset: "text",
+          })) as (
+            | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
+            | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
+          )[]),
+          ...(defaultStep !== -1 && statusOrder[defaultStep] ? [chatPreset[statusOrder[defaultStep]]] : []),
+        ]
       : [chatPreset.item]
   );
+  console.log(chat);
 
   const handleSubmit = async (
     e: FormEvent<HTMLFormElement>,
@@ -56,6 +68,10 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
       | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
   ) => {
     e.preventDefault();
+    if (aiLoading || chatLoading) {
+      return;
+    }
+
     let currentChatId = chatId;
 
     if (!input && !inputChat) {
@@ -64,8 +80,8 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
 
     setInput("");
     setChat((prev) => [...prev, inputChat ?? { type: "user", message: input }]);
-
-    if (currentStep === 5) {
+    console.log(currentStep);
+    if (currentStep === 5 || currentStep === 0) {
       setAiLoading(true);
     } else {
       setChatLoading(true);
@@ -92,15 +108,25 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     const chatRes = await httpClient.post<ChatDTO, ChatRes>("/api/v1/contents/send_message", {
       chatId: currentChatId,
       botMessage: lastBotMessage ?? "",
-      message: input,
+      message: inputChat?.message ?? input,
       completionTrigger: false,
     });
 
     setChatLoading(false);
-    setCurrentStep(chatRes.scenarioStep);
+
+    // 올바르지 않은 입력이었을 경우
+    if (chatRes.assistantMessage.validationResult === false) {
+      setChat((prev) => [
+        ...prev,
+        { type: "bot", message: chatRes.assistantMessage.content, preset: "text" },
+      ]);
+      return;
+    }
+
+    setCurrentStep(chatRes.nextScenarioStep);
 
     // 시나리오 종료 후 ai 생성
-    if (chatRes.scenarioStep === 0) {
+    if (chatRes.nextScenarioStep === 0) {
       try {
         const res = await httpClient.post<{ chatId: string; completionTrigger: boolean }, ChatRes>(
           "/api/v1/contents/generate_content",
@@ -123,17 +149,17 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     }
 
     // 시나리오 진행
-    const inProgressIndex = chatRes.scenarioStep - 2;
+    const inProgressIndex = Number(chatRes.nextScenarioStep) - 2;
     setChat((prev) => [
       ...prev,
       ...(inProgressIndex < 5 ? [chatPreset[statusOrder[inProgressIndex + 1]]] : []),
     ]);
 
-    setChatStatus((prev) => ({
-      ...prev,
-      [statusOrder[inProgressIndex]]: "COMPLETED",
-      ...(inProgressIndex < 5 && { [statusOrder[inProgressIndex + 1]]: "IN_PROGRESS" }),
-    }));
+    // setChatStatus((prev) => ({
+    //   ...prev,
+    //   [statusOrder[inProgressIndex]]: "COMPLETED",
+    //   ...(inProgressIndex < 5 && { [statusOrder[inProgressIndex + 1]]: "IN_PROGRESS" }),
+    // }));
   };
 
   const generateContent = async () => {
@@ -169,10 +195,23 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     }
 
     setChat([chatPreset.item]);
-    setChatStatus(defaultChatStatus);
+    // setChatStatus(defaultChatStatus);
     setChatId(id);
-    setCurrentStep(0);
+    setCurrentStep(-1);
   }, [flag, id]);
+
+  // useEffect(() => {
+  //   if (chat.at(-1)?.type === "bot") {
+  //     return;
+  //   }
+
+  //   if (defaultStep !== -1) {
+  //     if (statusOrder[defaultStep]) {
+  //       setChat((prev) => [...prev, chatPreset[statusOrder[defaultStep]]]);
+  //     }
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   return (
     <>
@@ -297,7 +336,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
-          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap">
+          <div className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap">
             {`만들고 싶은 콘텐츠 유형은 무엇인가요?\n보기에 없는 경우, 직접 입력해주세요.`}
 
             <div className="mt-[16px] flex flex-col gap-[8px]">
@@ -351,7 +390,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
                 </p>
               </div>
             </div>
-          </p>
+          </div>
         </div>
       </div>
     );
@@ -365,7 +404,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
-          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+          <div className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
             <span>
               구매처 <span className="text-gray-500 text-body/s/400">(예. URL, 연락처 등)</span>을 추가할까요?
             </span>
@@ -385,7 +424,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
                 <IconArrowForward size={16} />
               </span>
             </button>
-          </p>
+          </div>
         </div>
       </div>
     );
@@ -399,7 +438,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
-          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+          <div className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
             <span>현재 진행 중인 이벤트나 할인이 있나요?</span>
             <span>
               행사 내용에 대해 더 자세히 알려주세요.
@@ -420,7 +459,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
                 <IconArrowForward size={16} />
               </span>
             </button>
-          </p>
+          </div>
         </div>
       </div>
     );
@@ -432,7 +471,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
         <IconBunong />
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
-          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+          <div className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
             <span>들어갔으면 하는 문구가 있나요?</span>
             <span>원하는 문구를 알려주세요.</span>
             <span>없다면 [넘어가기]를 선택해주세요~</span>
@@ -450,7 +489,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
                 <IconArrowForward size={16} />
               </span>
             </button>
-          </p>
+          </div>
         </div>
       </div>
     );

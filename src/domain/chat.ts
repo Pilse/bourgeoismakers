@@ -19,13 +19,14 @@ export type ChatRes = {
     content: string;
     validationResult: boolean;
   };
-  scenarioStep: number;
+  nextScenarioStep: number;
   status: true;
 };
 
 export type Content = {
   role: "bot" | "user";
   content: string;
+  scenarioStep: number;
 };
 
 export const chatStatus: Record<Exclude<CHAT_PRESET_TYPE, "text" | "result">, CHAT_STATUS> = {

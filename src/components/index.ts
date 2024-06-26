@@ -8,3 +8,4 @@ export * from "./brand-delete-modal";
 export * from "./brand-dropdown";
 export * from "./chatting-form";
 export * from "./new-content-button";
+export * from "./content-delete-modal";

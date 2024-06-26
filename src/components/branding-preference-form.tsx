@@ -6,6 +6,7 @@ import { twMerge } from "tailwind-merge";
 
 interface IBrandingPreferenceFormProps {
   form: BrandingPreference;
+  error?: string | null;
   onSnsChange: (sns: string) => void;
   onItemChange: (item: string) => void;
   onVibeChange: (vibe: { type: "INPUT" | "OPTION"; value: string }) => void;
@@ -18,6 +19,7 @@ export const BrandingPreferenceForm = ({
   onItemChange,
   onVibeChange,
   onStrengthChange,
+  error,
 }: IBrandingPreferenceFormProps) => {
   return (
     <form className="mt-[32px] overflow-auto pb-[24px]">
@@ -74,13 +76,19 @@ export const BrandingPreferenceForm = ({
           <span className="text-[#F43F5E] text-[12px] leading-[16px] font-semibold">*</span>
         </label>
 
-        <input
-          type="text"
-          placeholder="여러 개인 경우 쉼표로 구분해주세요 ex) 고구마, 감자"
-          value={form.item ?? ""}
-          onChange={(e) => onItemChange(e.target.value)}
-          className="h-[36px] w-[320px] rounded-[6px] border border-gray-300 px-[8px] text-body/s/400 placeholder:text-gray-500 focus:border-black"
-        />
+        <div className="flex flex-col gap-1">
+          <input
+            type="text"
+            placeholder="여러 개인 경우 쉼표로 구분해주세요 ex) 고구마, 감자"
+            value={form.item ?? ""}
+            onChange={(e) => onItemChange(e.target.value)}
+            className={twMerge(
+              "h-[36px] w-[320px] rounded-[6px] border border-gray-300 px-[8px] text-body/s/400 placeholder:text-gray-500 focus:border-black",
+              error && "border-[#F43F5E]"
+            )}
+          />
+          {error && <span className="text-[#F43F5E] text-body/xs/400">{error}</span>}
+        </div>
       </div>
 
       <div className="flex flex-col gap-[8px] mt-[32px]">
