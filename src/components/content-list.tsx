@@ -1,13 +1,13 @@
 "use client";
 
 import { ChatListItem } from "@/domain";
-import { IconDelete, IconHistory, IconMoreVertical } from "@/icons";
+import { IconDelete, IconHistory, IconInbox, IconMoreVertical } from "@/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { ContentDeleteModal } from "./content-delete-modal";
 import { httpClient } from "@/service/http-client";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
 interface IContentListProps {
@@ -16,10 +16,12 @@ interface IContentListProps {
   id?: string;
 }
 
-export const ContentList = ({ chats, brandId, id }: IContentListProps) => {
+export const ContentList = ({ chats, brandId, id: defaultId }: IContentListProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [deleteChatId, setDeleteChatId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const id = defaultId ?? searchParams.get("id");
 
   const onConfirm = async () => {
     if (!deleteChatId) {
@@ -89,6 +91,12 @@ export const ContentList = ({ chats, brandId, id }: IContentListProps) => {
             </button>
           </li>
         ))}
+        {chats?.chatList.length === 0 && (
+          <div className="mt-40 flex items-center flex-col">
+            <IconInbox />
+            <p className="text-center mt-2 whitespace-pre-wrap text-gray-500 text-body/m/500">{`아직 생성된 콘텐츠가\n없습니다.`}</p>
+          </div>
+        )}
       </ul>
 
       {showModal && <ContentDeleteModal onConfirm={onConfirm} onCancel={onCancel} />}

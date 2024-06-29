@@ -1,24 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import {
-  CHAT_PRESET_TYPE,
-  CHAT_STATUS,
-  ChatDTO,
-  ChatListItem,
-  ChatRes,
-  Content,
-  chatPreset,
-  chatStatus as defaultChatStatus,
-  statusOrder,
-} from "@/domain";
+import { CHAT_PRESET_TYPE, ChatDTO, ChatListItem, ChatRes, Content, chatPreset, statusOrder } from "@/domain";
 import { IconArrowForward, IconContentCopy, IconOfflineBolt } from "@/icons";
 import { IconBunong } from "@/icons/bunong";
+import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { IconSendFill } from "@/icons/send-fill";
 import { httpClient } from "@/service/http-client";
 import { useForceRerenderStore } from "@/store";
-import { useRouter } from "next/navigation";
-import { Dispatch, FormEvent, SetStateAction, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { Dispatch, FormEvent, SetStateAction, useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { Oval } from "react-loader-spinner";
 import { twMerge } from "tailwind-merge";
 
@@ -26,40 +19,53 @@ interface IChattingFormProps {
   brandId: string;
   id?: string;
   chat?: { messages: Content[] };
+  title?: string;
 }
 
-export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormProps) => {
+export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTitle }: IChattingFormProps) => {
+  const pathname = usePathname();
   const defaultStep = defaultChat?.messages.at(-1)?.scenarioStep ?? -1;
   const router = useRouter();
   const { flag } = useForceRerenderStore();
   const chatRef = useRef<HTMLDivElement>(null);
   const [chatId, setChatId] = useState(id);
   const [input, setInput] = useState("");
-  // const [chatStatus, setChatStatus] = useState(defaultChatStatus);
+  const [title, setTitle] = useState(defaultTitle);
   const [chatLoading, setChatLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(defaultStep);
   const [aiLoading, setAiLoading] = useState(false);
+
+  const lastContentIndex = defaultChat?.messages.findLastIndex((chat) => chat.scenarioStep === 0);
   const [chat, setChat] = useState<
     (
-      | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
+      | {
+          type: "bot";
+          preset: CHAT_PRESET_TYPE;
+          message?: string;
+          scenarioStep?: number;
+          isLastContent?: boolean;
+        }
       | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
     )[]
   >(
     defaultChat
       ? [
-          ...(defaultChat.messages.map((chat) => ({
+          ...(defaultChat.messages.map((chat, idx) => ({
             type: chat.role,
             message: chat.content,
             preset: "text",
+            scenarioStep: chat.scenarioStep,
+            isLastContent: idx === lastContentIndex,
           })) as (
             | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
             | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
           )[]),
-          ...(defaultStep !== -1 && statusOrder[defaultStep] ? [chatPreset[statusOrder[defaultStep]]] : []),
+          ...(defaultStep !== -1 && statusOrder[defaultStep - 1]
+            ? [chatPreset[statusOrder[defaultStep]]]
+            : []),
         ]
       : [chatPreset.item]
   );
-  console.log(chat);
 
   const handleSubmit = async (
     e: FormEvent<HTMLFormElement>,
@@ -73,14 +79,12 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     }
 
     let currentChatId = chatId;
-
     if (!input && !inputChat) {
       return;
     }
 
     setInput("");
     setChat((prev) => [...prev, inputChat ?? { type: "user", message: input }]);
-    console.log(currentStep);
     if (currentStep === 5 || currentStep === 0) {
       setAiLoading(true);
     } else {
@@ -96,6 +100,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
 
       currentChatId = createChatRes.chatId;
       setChatId(createChatRes.chatId);
+      router.replace(`${pathname}?id=${createChatRes.chatId}`);
       router.refresh();
     }
 
@@ -132,11 +137,26 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
           "/api/v1/contents/generate_content",
           { chatId: currentChatId, completionTrigger: true }
         );
+
         if (res.status) {
           setChat((prev) => [
             ...prev,
             { type: "bot", message: res.assistantMessage.content, preset: "result" },
           ]);
+
+          // 채팅 제목이 없을 경우 생성
+          if (!title) {
+            try {
+              const res = await httpClient.post<{ chatId: string }, { title: string }>(
+                "/api/v1/contents/generate_title",
+                {
+                  chatId: currentChatId,
+                }
+              );
+              setTitle(res.title);
+              router.refresh();
+            } catch (error) {}
+          }
         }
       } catch (error) {
         setChat((prev) => [
@@ -181,6 +201,23 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     setAiLoading(false);
   };
 
+  const generateTitle = async () => {
+    if (!chatId) {
+      return;
+    }
+
+    try {
+      const res = await httpClient.post<{ chatId: string }, { title: string }>(
+        "/api/v1/contents/generate_title",
+        {
+          chatId,
+        }
+      );
+      router.refresh();
+      setTitle(res.title);
+    } catch (error) {}
+  };
+
   useEffect(() => {
     if (!chatRef.current) {
       return;
@@ -195,27 +232,22 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
     }
 
     setChat([chatPreset.item]);
-    // setChatStatus(defaultChatStatus);
     setChatId(id);
     setCurrentStep(-1);
   }, [flag, id]);
 
-  // useEffect(() => {
-  //   if (chat.at(-1)?.type === "bot") {
-  //     return;
-  //   }
+  useEffect(() => {
+    if (!chatRef.current) {
+      return;
+    }
 
-  //   if (defaultStep !== -1) {
-  //     if (statusOrder[defaultStep]) {
-  //       setChat((prev) => [...prev, chatPreset[statusOrder[defaultStep]]]);
-  //     }
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+    // console.log(document.getElementById("lastContent")?.offsetHeight, chatRef.current.scrollHeight);
+    // chatRef.current.scrollTop = document.getElementById("lastContent")?.scrollHeight ?? 0;
+  }, []);
 
   return (
     <>
-      <div className="w-[860px] flex flex-col overflow-y-auto h-full" ref={chatRef}>
+      <div className="w-[860px] flex flex-col overflow-y-auto h-full relative" ref={chatRef}>
         <div className="grow flex flex-col gap-3 p-4">
           {chat.map((c, idx) =>
             c.type === "bot" ? (
@@ -223,9 +255,11 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
                 key={c.message + c.type + String(idx)}
                 presetType={c.preset}
                 message={c.message}
+                isLastContent={c.isLastContent}
                 setChat={setChat}
                 handleSubmit={handleSubmit}
                 generateContent={generateContent}
+                generateTitle={generateTitle}
               />
             ) : (
               <UserChat key={c.message + c.type + String(idx)} message={c.message} />
@@ -235,7 +269,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
           {(chatLoading || aiLoading) && (
             <div className="flex gap-[8px]">
               <span className="shrink-0">
-                <IconBunong />
+                <Image src="/bunong.png" width={36} height={36} alt="bunong" />
               </span>
               <div className="flex flex-col gap-[8px]">
                 <span className="text-body/m/500 text-gray-600">부농이</span>
@@ -246,7 +280,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
                   </p>
                 )}
                 {aiLoading && (
-                  <p className="w-[560px] px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col items-center text-center">
+                  <div className="w-[560px] px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col items-center text-center">
                     <span className="whitespace-pre-wrap">{`결과를 가져오는 중이에요\n잠시만 기다려주세요`}</span>
                     <span className="mt-4">
                       <Oval
@@ -258,7 +292,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat }: IChattingFormPr
                         secondaryColor="#089e8333"
                       />
                     </span>
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -304,15 +338,25 @@ interface IBotChat {
       | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
       | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
   ) => void;
-  generateContent: () => void;
+  generateContent: () => Promise<void>;
+  generateTitle: () => Promise<void>;
+  isLastContent?: boolean;
 }
 
-const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }: IBotChat) => {
+const BotChat = ({
+  presetType,
+  message,
+  setChat,
+  handleSubmit,
+  generateContent,
+  generateTitle,
+  isLastContent,
+}: IBotChat) => {
   if (presetType === "item") {
     return (
       <div className="flex gap-[8px]">
         <span className="shrink-0">
-          <IconBunong />
+          <Image src="/bunong.png" width={36} height={36} alt="bunong" />
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
@@ -332,7 +376,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
     return (
       <div className="flex gap-[8px]">
         <span className="shrink-0">
-          <IconBunong />
+          <Image src="/bunong.png" width={36} height={36} alt="bunong" />
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
@@ -346,7 +390,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
               </span>
 
               <div
-                className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer"
+                className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer overflow-hidden"
                 onClick={() => {
                   handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>, {
                     type: "user",
@@ -354,7 +398,9 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
                   });
                 }}
               >
-                <div className="w-[96px] h-[96px] bg-gray-100"></div>
+                <div className="w-[96px] h-[96px] bg-gray-100">
+                  <Image src="/review.png" alt="review" width={96} height={96} />
+                </div>
                 <p className="text-black text-heading/xs whitespace-pre-wrap flex items-center px-[16px]">
                   {`고객 리뷰 혹은 평가\n: 고객들이 이게 좋대요!`}
                 </p>
@@ -369,7 +415,9 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
                   });
                 }}
               >
-                <div className="w-[96px] h-[96px] bg-gray-100"></div>
+                <div className="w-[96px] h-[96px] bg-gray-100">
+                  <Image src="/compliment.png" alt="review" width={96} height={96} />
+                </div>
                 <p className="text-black text-heading/xs whitespace-pre-wrap flex items-center px-[16px]">
                   {`자화자찬\n: 우리 이거 진짜 좋아요`}
                 </p>
@@ -384,7 +432,9 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
                   });
                 }}
               >
-                <div className="w-[96px] h-[96px] bg-gray-100"></div>
+                <div className="w-[96px] h-[96px] bg-gray-100">
+                  <Image src="/recipe.png" alt="review" width={96} height={96} />
+                </div>
                 <p className="text-black text-heading/xs whitespace-pre-wrap flex items-center px-[16px]">
                   {`레시피 공유`}
                 </p>
@@ -400,7 +450,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
     return (
       <div className="flex gap-[8px]">
         <span className="shrink-0">
-          <IconBunong />
+          <Image src="/bunong.png" width={36} height={36} alt="bunong" />
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
@@ -434,7 +484,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
     return (
       <div className="flex gap-[8px]">
         <span className="shrink-0">
-          <IconBunong />
+          <Image src="/bunong.png" width={36} height={36} alt="bunong" />
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
@@ -468,7 +518,9 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
   if (presetType === "keywords") {
     return (
       <div className="flex gap-[8px]">
-        <IconBunong />
+        <span className="shrink-0">
+          <Image src="/bunong.png" width={36} height={36} alt="bunong" />
+        </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
           <div className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
@@ -480,8 +532,9 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
 
             <button
               className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]"
-              onClick={() => {
-                generateContent();
+              onClick={async () => {
+                await generateContent();
+                generateTitle();
               }}
             >
               <span className="heading-xs">이 질문 넘어가기</span>
@@ -497,17 +550,26 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
 
   if (presetType === "text") {
     return (
-      <div className="flex gap-[8px]">
-        <span className="shrink-0">
-          <IconBunong />
-        </span>
-        <div className="flex flex-col gap-[8px]">
-          <span className="text-body/m/500 text-gray-600">부농이</span>
-          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
-            {message}
-          </p>
+      <>
+        {isLastContent && (
+          <div id="lastContent" className="flex items-center gap-[40px]">
+            <div className="h-px bg-gray-300 grow"></div>
+            <span className="text-gray-500 text-heading/xs">이전 콘텐츠 생성 과정 보기</span>
+            <div className="h-px bg-gray-300 grow"></div>
+          </div>
+        )}
+        <div className="flex gap-[8px]">
+          <span className="shrink-0">
+            <Image src="/bunong.png" width={36} height={36} alt="bunong" />
+          </span>
+          <div className="flex flex-col gap-[8px]">
+            <span className="text-body/m/500 text-gray-600">부농이</span>
+            <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+              {message}
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -515,11 +577,11 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
     return (
       <div className="flex gap-[8px]">
         <span className="shrink-0">
-          <IconBunong />
+          <Image src="/bunong.png" width={36} height={36} alt="bunong" />
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
-          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+          <div className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
             {message}
 
             <div className="w-full h-px bg-[#D1D5DB] mt-4"></div>
@@ -528,6 +590,12 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
               className="flex gap-1 px-3 py-1.5 mt-4 items-center rounded-md hover:bg-gray-100 w-fit"
               onClick={() => {
                 window.navigator.clipboard.writeText(message ?? "");
+                toast(
+                  <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
+                    <IconCheckCircleFill />
+                    <span>복사가 완료되었습니다.</span>
+                  </span>
+                );
               }}
             >
               <span>
@@ -535,7 +603,7 @@ const BotChat = ({ presetType, message, setChat, handleSubmit, generateContent }
               </span>
               <span>복사하기</span>
             </button>
-          </p>
+          </div>
           <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
             <span>{`결과가 나왔어요\n추가로 변경하고 싶은 사항이 있으시면 채팅에 입력해주세요! `}</span>
             <span className="text-body/s/400 text-gray-500">(ex. 말투 혹은 길이 등)</span>

@@ -22,3 +22,4 @@ export * from "./upload";
 export * from "./manage-search";
 export * from "./pallete2";
 export * from "./content-copy";
+export * from "./inbox";
