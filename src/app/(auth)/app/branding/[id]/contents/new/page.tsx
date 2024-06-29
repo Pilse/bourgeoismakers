@@ -16,6 +16,9 @@ import {
 import { httpServer } from "@/service/http-server";
 import Link from "next/link";
 
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 export default async function Page(props: { params: { id: string } }) {
   const [farm, farmList, chats] = await Promise.all([
     httpServer.get<Farm>(`/api/v1/farm/get_farm?farm_id=${props.params.id}`),

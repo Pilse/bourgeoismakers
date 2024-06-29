@@ -65,13 +65,18 @@ export const ContentList = ({ chats, brandId, id: defaultId }: IContentListProps
               id === chat.chatId && "bg-[#F3F4F6]"
             )}
           >
-            <Link
-              href={`/app/branding/${brandId}/contents/${chat.chatId}`}
-              className="h-full flex flex-col justify-center gap-[2px] max-w-[240px]"
+            <button
+              onClick={() => {
+                router.push(`/app/branding/${brandId}/contents/${chat.chatId}`);
+                router.refresh();
+              }}
+              className="h-full flex flex-col justify-center gap-[2px] max-w-[240px] w-full "
             >
-              <span className="text-heading/xs truncate">{chat.title}</span>
-              <span className="text-body/xs/400 text-gray-500">{chat.description || "- / -"}</span>
-            </Link>
+              <span className="text-heading/xs truncate w-full text-left">{chat.title}</span>
+              <span className="text-body/xs/400 text-gray-500 truncate w-full text-left">
+                {chat.description || "- / -"}
+              </span>
+            </button>
 
             <button className="relative group">
               <IconMoreVertical />

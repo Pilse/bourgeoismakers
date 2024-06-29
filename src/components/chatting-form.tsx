@@ -60,7 +60,9 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
             | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
             | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
           )[]),
-          ...(defaultStep !== -1 && statusOrder[defaultStep - 1]
+          ...(defaultChat.messages.at(-1)?.role === "bot" &&
+          defaultStep !== -1 &&
+          statusOrder[defaultStep - 1]
             ? [chatPreset[statusOrder[defaultStep]]]
             : []),
         ]
@@ -101,7 +103,6 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
       currentChatId = createChatRes.chatId;
       setChatId(createChatRes.chatId);
       router.replace(`${pathname}?id=${createChatRes.chatId}`);
-      router.refresh();
     }
 
     if (!currentChatId) {
@@ -183,7 +184,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
   };
 
   const generateContent = async () => {
-    if (!chatId) {
+    if (!chatId || aiLoading || chatLoading) {
       return;
     }
 
@@ -209,12 +210,10 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
     try {
       const res = await httpClient.post<{ chatId: string }, { title: string }>(
         "/api/v1/contents/generate_title",
-        {
-          chatId,
-        }
+        { chatId }
       );
-      router.refresh();
       setTitle(res.title);
+      router.refresh();
     } catch (error) {}
   };
 
@@ -224,7 +223,7 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
     }
 
     chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [chat]);
+  }, [chat, aiLoading, chatLoading]);
 
   useEffect(() => {
     if (id) {
@@ -235,15 +234,6 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
     setChatId(id);
     setCurrentStep(-1);
   }, [flag, id]);
-
-  useEffect(() => {
-    if (!chatRef.current) {
-      return;
-    }
-
-    // console.log(document.getElementById("lastContent")?.offsetHeight, chatRef.current.scrollHeight);
-    // chatRef.current.scrollTop = document.getElementById("lastContent")?.scrollHeight ?? 0;
-  }, []);
 
   return (
     <>
