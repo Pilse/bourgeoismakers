@@ -2,8 +2,7 @@
 
 import { ChatListItem } from "@/domain";
 import { IconDelete, IconHistory, IconInbox, IconMoreVertical } from "@/icons";
-import Link from "next/link";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { ContentDeleteModal } from "./content-delete-modal";
 import { httpClient } from "@/service/http-client";
 import toast from "react-hot-toast";
@@ -49,7 +48,6 @@ export const ContentList = ({ chats, brandId, id: defaultId }: IContentListProps
   const onCancel = () => {
     setShowModal(false);
   };
-
   return (
     <>
       <ul className="flex flex-col gap-[8px] p-[16px] overflow-y-auto h-full">
@@ -68,7 +66,6 @@ export const ContentList = ({ chats, brandId, id: defaultId }: IContentListProps
             <button
               onClick={() => {
                 router.push(`/app/branding/${brandId}/contents/${chat.chatId}`);
-                router.refresh();
               }}
               className="h-full flex flex-col justify-center gap-[2px] max-w-[240px] w-full "
             >

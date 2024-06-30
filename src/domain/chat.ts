@@ -27,6 +27,7 @@ export type Content = {
   role: "bot" | "user";
   content: string;
   scenarioStep: number;
+  nextScenarioStep: number;
 };
 
 export const chatStatus: Record<Exclude<CHAT_PRESET_TYPE, "text" | "result">, CHAT_STATUS> = {

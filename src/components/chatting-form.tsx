@@ -3,14 +3,13 @@
 
 import { CHAT_PRESET_TYPE, ChatDTO, ChatListItem, ChatRes, Content, chatPreset, statusOrder } from "@/domain";
 import { IconArrowForward, IconContentCopy, IconOfflineBolt } from "@/icons";
-import { IconBunong } from "@/icons/bunong";
 import { IconCheckCircleFill } from "@/icons/check-circle-fill";
 import { IconSendFill } from "@/icons/send-fill";
 import { httpClient } from "@/service/http-client";
 import { useForceRerenderStore } from "@/store";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Dispatch, FormEvent, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, memo, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Oval } from "react-loader-spinner";
 import { twMerge } from "tailwind-merge";
@@ -24,17 +23,17 @@ interface IChattingFormProps {
 
 export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTitle }: IChattingFormProps) => {
   const pathname = usePathname();
-  const defaultStep = defaultChat?.messages.at(-1)?.scenarioStep ?? -1;
+  const nextStep = defaultChat?.messages.at(-1)?.nextScenarioStep;
+  const defaultStep = nextStep ? nextStep - 1 : -1;
   const router = useRouter();
   const { flag } = useForceRerenderStore();
   const chatRef = useRef<HTMLDivElement>(null);
   const [chatId, setChatId] = useState(id);
   const [input, setInput] = useState("");
-  const [title, setTitle] = useState(defaultTitle);
+  const [title, setTitle] = useState(!!defaultTitle);
   const [chatLoading, setChatLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(defaultStep);
   const [aiLoading, setAiLoading] = useState(false);
-
   const lastContentIndex = defaultChat?.messages.findLastIndex((chat) => chat.scenarioStep === 0);
   const [chat, setChat] = useState<
     (
@@ -56,15 +55,12 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
             preset: "text",
             scenarioStep: chat.scenarioStep,
             isLastContent: idx === lastContentIndex,
+            nextScenarioStep: chat.nextScenarioStep,
           })) as (
             | { type: "bot"; preset: CHAT_PRESET_TYPE; message?: string }
             | { type: "user"; preset?: CHAT_PRESET_TYPE; message: string }
           )[]),
-          ...(defaultChat.messages.at(-1)?.role === "bot" &&
-          defaultStep !== -1 &&
-          statusOrder[defaultStep - 1]
-            ? [chatPreset[statusOrder[defaultStep]]]
-            : []),
+          ...(defaultStep !== -1 && statusOrder[defaultStep] ? [chatPreset[statusOrder[defaultStep]]] : []),
         ]
       : [chatPreset.item]
   );
@@ -146,16 +142,19 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
           ]);
 
           // 채팅 제목이 없을 경우 생성
+          setAiLoading(false);
           if (!title) {
             try {
-              const res = await httpClient.post<{ chatId: string }, { title: string }>(
+              const res = await httpClient.post<{ chatId: string }, { result: boolean }>(
                 "/api/v1/contents/generate_title",
                 {
                   chatId: currentChatId,
                 }
               );
-              setTitle(res.title);
-              router.refresh();
+              if (res.result) {
+                setTitle(true);
+                router.replace(`${pathname}?id=${chatId}`);
+              }
             } catch (error) {}
           }
         }
@@ -165,9 +164,9 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
           { type: "bot", message: "죄송해요 이해하지 못했어요. 다시 말씀해주시겠어요?", preset: "text" },
         ]);
       }
-      setAiLoading(false);
       return;
     }
+    setAiLoading(false);
 
     // 시나리오 진행
     const inProgressIndex = Number(chatRes.nextScenarioStep) - 2;
@@ -175,12 +174,6 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
       ...prev,
       ...(inProgressIndex < 5 ? [chatPreset[statusOrder[inProgressIndex + 1]]] : []),
     ]);
-
-    // setChatStatus((prev) => ({
-    //   ...prev,
-    //   [statusOrder[inProgressIndex]]: "COMPLETED",
-    //   ...(inProgressIndex < 5 && { [statusOrder[inProgressIndex + 1]]: "IN_PROGRESS" }),
-    // }));
   };
 
   const generateContent = async () => {
@@ -208,12 +201,14 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
     }
 
     try {
-      const res = await httpClient.post<{ chatId: string }, { title: string }>(
+      const res = await httpClient.post<{ chatId: string }, { result: boolean }>(
         "/api/v1/contents/generate_title",
         { chatId }
       );
-      setTitle(res.title);
-      router.refresh();
+      if (res.result) {
+        setTitle(true);
+        router.replace(`${pathname}?id=${chatId}`);
+      }
     } catch (error) {}
   };
 
@@ -247,9 +242,12 @@ export const ChattingForm = ({ brandId, id, chat: defaultChat, title: defaultTit
                 message={c.message}
                 isLastContent={c.isLastContent}
                 setChat={setChat}
+                scenarioStep={c.scenarioStep}
                 handleSubmit={handleSubmit}
                 generateContent={generateContent}
                 generateTitle={generateTitle}
+                isLast={idx === chat.length - 1}
+                isFirst={idx === 0}
               />
             ) : (
               <UserChat key={c.message + c.type + String(idx)} message={c.message} />
@@ -331,6 +329,9 @@ interface IBotChat {
   generateContent: () => Promise<void>;
   generateTitle: () => Promise<void>;
   isLastContent?: boolean;
+  scenarioStep?: number;
+  isLast: boolean;
+  isFirst: boolean;
 }
 
 const BotChat = ({
@@ -338,9 +339,12 @@ const BotChat = ({
   message,
   setChat,
   handleSubmit,
+  scenarioStep,
   generateContent,
   generateTitle,
   isLastContent,
+  isLast,
+  isFirst,
 }: IBotChat) => {
   if (presetType === "item") {
     return (
@@ -350,9 +354,11 @@ const BotChat = ({
         </span>
         <div className="flex flex-col gap-[8px]">
           <span className="text-body/m/500 text-gray-600">부농이</span>
-          <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900">
-            안녕하세요 저는 여러분의 마케팅을 도와줄 부농이에요 :)
-          </p>
+          {isFirst && (
+            <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900">
+              안녕하세요 저는 여러분의 마케팅을 도와줄 부농이에요 :)
+            </p>
+          )}
           <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 flex flex-col w-fit">
             <span>어떤 품목을 홍보하고 싶은지 알려주세요!</span>
             <span className="text-gray-500 text-body/s/400">(ex. 딸기, 고구마 등)</span>
@@ -382,6 +388,9 @@ const BotChat = ({
               <div
                 className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer overflow-hidden"
                 onClick={() => {
+                  if (!isLast) {
+                    return;
+                  }
                   handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>, {
                     type: "user",
                     message: `고객 리뷰 혹은 평가\n: 고객들이 이게 좋대요!`,
@@ -399,6 +408,9 @@ const BotChat = ({
               <div
                 className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer"
                 onClick={() => {
+                  if (!isLast) {
+                    return;
+                  }
                   handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>, {
                     type: "user",
                     message: `자화자찬\n: 우리 이거 진짜 좋아요`,
@@ -416,6 +428,9 @@ const BotChat = ({
               <div
                 className="w-[376px] rounded-[8px] border border-gray-200 flex ml-[24px] cursor-pointer"
                 onClick={() => {
+                  if (!isLast) {
+                    return;
+                  }
                   handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>, {
                     type: "user",
                     message: `레시피 공유`,
@@ -456,6 +471,9 @@ const BotChat = ({
             <button
               className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]"
               onClick={() => {
+                if (!isLast) {
+                  return;
+                }
                 setChat((prev) => [...prev, chatPreset.keywords]);
               }}
             >
@@ -491,6 +509,9 @@ const BotChat = ({
             <button
               className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]"
               onClick={() => {
+                if (!isLast) {
+                  return;
+                }
                 setChat((prev) => [...prev, chatPreset.contacts]);
               }}
             >
@@ -523,6 +544,9 @@ const BotChat = ({
             <button
               className="flex items-center gap-[4px] rounded-[6px] bg-[#E0F3F0] text-[#089E83] h-[36px] px-[16px] self-start hover:bg-[#B4E2D8]"
               onClick={async () => {
+                if (!isLast) {
+                  return;
+                }
                 await generateContent();
                 generateTitle();
               }}
@@ -554,9 +578,33 @@ const BotChat = ({
           </span>
           <div className="flex flex-col gap-[8px]">
             <span className="text-body/m/500 text-gray-600">부농이</span>
-            <p className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
+            <div className="px-[24px] py-[12px] bg-white rounded-[24px] text-heading/s text-gray-900 whitespace-pre-wrap flex flex-col">
               {message}
-            </p>
+
+              {scenarioStep === 0 && (
+                <>
+                  <div className="w-full h-px bg-[#D1D5DB] mt-4"></div>
+
+                  <button
+                    className="flex gap-1 px-3 py-1.5 mt-4 items-center rounded-md hover:bg-gray-100 w-fit"
+                    onClick={() => {
+                      window.navigator.clipboard.writeText(message ?? "");
+                      toast(
+                        <span className="flex gap-[8px] h-[40px] items-center w-full bg-black rounded-[6px] px-[16px]">
+                          <IconCheckCircleFill />
+                          <span>복사가 완료되었습니다.</span>
+                        </span>
+                      );
+                    }}
+                  >
+                    <span>
+                      <IconContentCopy />
+                    </span>
+                    <span>복사하기</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </>
